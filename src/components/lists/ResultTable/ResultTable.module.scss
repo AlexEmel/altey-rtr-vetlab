@@ -1,0 +1,21 @@
+.result {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  .value {
+    font-weight: 500;
+  }
+  .greenValue {
+    color: var(--color-success);
+  }
+  .redValue {
+    color: var(--color-danger);
+  }
+  .arrow {
+    height: 1rem;
+  }
+}
+
+.pathologyRow {
+  background-color: rgb(var(--color-danger-rgb) / 0.05);
+}

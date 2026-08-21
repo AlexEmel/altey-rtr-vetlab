@@ -1,0 +1,51 @@
+.tag {
+  border-radius: 15px;
+  justify-content: center;
+  align-items: center;
+  width: max-content;
+  height: max-content;
+  padding: 1px 5px;
+  text-transform: uppercase;
+}
+
+.green {
+  background-color: rgb(var(--color-success-rgb) / 0.6);
+  color: var(--color-text-inverse);
+  border: 1px solid rgb(var(--color-success-rgb) / 0.2);
+}
+
+.gray {
+  background-color: color-mix(in srgb, var(--color-border-muted) 70%, white);
+  color: var(--color-text-secondary);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.purple {
+  background-color: rgb(var(--color-purple-rgb) / 0.7);
+  color: var(--color-text-inverse);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.2);
+}
+
+.orange {
+  background-color: color-mix(in srgb, var(--color-bg-selected-row) 90%, transparent);
+  color: var(--color-warning);
+  border: 1px solid rgb(var(--color-accent-rgb) / 0.2);
+}
+
+.blue {
+  background-color: rgb(var(--color-primary-rgb) / 0.6);
+  color: var(--color-text-inverse);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.3);
+}
+
+.small {
+  font-size: 0.6rem;
+}
+
+.medium {
+  font-size: 0.8rem;
+}
+
+.large {
+  font-size: 1rem;
+}

@@ -1,0 +1,20 @@
+.infoGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  .title {
+    margin-bottom: 0.3rem;
+  }
+  .infoBox {
+    display: flex;
+    gap: 0.5rem;
+    .infoValue {
+      font-weight: 500;
+    }
+  }
+  .barcodeBox {
+    display: flex;
+    align-items: center;
+  }
+}

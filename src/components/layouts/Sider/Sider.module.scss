@@ -1,0 +1,31 @@
+.appSider {
+  background-color: var(--color-primary);
+  padding: 1rem;
+  flex-direction: column;
+  transition: width 0.2s ease-in-out;
+  .footer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    .link {
+      font-size: 0.9rem;
+      color: var(--color-text-inverse);
+    }
+    .collapseBtn {
+      color: rgb(var(--color-text-inverse-rgb) / 0.9);
+      cursor: pointer;
+      transition: transform 0.2s ease-in-out;
+      &:hover {
+        color: var(--color-text-inverse);
+      }
+    }
+  }
+}
+
+.expanded {
+  width: 190px;
+}
+
+.collapsed {
+  width: 60px;
+}

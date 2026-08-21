@@ -1,0 +1,46 @@
+.slotCard {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background: var(--color-slot-active);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  user-select: none;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--color-interactive-hover);
+    color: var(--color-text-strong);
+  }
+
+  &.disabled {
+    color: var(--color-text-tertiary);
+    background-color: var(--color-bg-card-disabled);
+  }
+
+  &.active {
+    border-color: var(--color-interactive-hover);
+    background: var(--color-bg-card-active);
+    color: var(--color-text-strong);
+    font-weight: bold;
+  }
+}
+
+.slotCardIcon {
+  font-size: 14px;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+
+  .active & {
+    color: var(--color-accent);
+  }
+}

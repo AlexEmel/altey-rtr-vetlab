@@ -1,0 +1,10 @@
+// DateTimeDisplay.module.scss
+.dateTime {
+  display: flex;
+  flex-direction: column;
+//   line-height: 1.2;
+  .time {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+  }
+}

@@ -1,0 +1,48 @@
+:root,
+:root[data-theme='light'] {
+  --theme-color-text: #31363f;
+  --theme-color-text-rgb: 49 54 63;
+  --theme-color-text-strong: #1d2939;
+  --theme-color-text-secondary: #344054;
+  --theme-color-text-tertiary: #667085;
+  --theme-color-text-inverse: #ffffff;
+  --theme-color-text-inverse-rgb: 255 255 255;
+
+  --theme-color-bg-app: #ffffff;
+  --theme-color-bg-surface: #ffffff;
+  --theme-color-bg-soft: #f4ecff;
+  --theme-color-bg-header: #eaebf1;
+  --theme-color-bg-login: #d3d6ec;
+  --theme-color-bg-selected-row: #fffade;
+  --theme-color-bg-selected-row-hover: #f7f0cb;
+  --theme-color-bg-card-active: #fef9ec;
+  --theme-color-bg-card-disabled: #efeff1;
+
+  --theme-color-border: #9ba2b1;
+  --theme-color-border-muted: #c2c2c2;
+  --theme-color-border-soft: #cbdeff;
+
+  --theme-color-primary: #2e396e;
+  --theme-color-primary-rgb: 46 57 110;
+  --theme-color-primary-hover: #0a185f;
+  --theme-color-primary-soft: rgb(46 57 110 / 0.6);
+
+  --theme-color-accent: #ffb352;
+  --theme-color-accent-hover: #d6b965;
+  --theme-color-accent-rgb: 255 179 82;
+
+  --theme-color-success: #3d9259;
+  --theme-color-success-rgb: 61 146 89;
+  --theme-color-warning: #ef7158;
+  --theme-color-danger: #c1121f;
+  --theme-color-danger-rgb: 193 18 31;
+  --theme-color-purple: #b34b90;
+  --theme-color-purple-rgb: 179 75 144;
+
+  --theme-color-slot-active: #007d5f1f;
+  --theme-color-slot-reserved: #d4aba257;
+  --theme-color-sidebar-text: #d3d6ec;
+  --theme-color-link: #2e396e;
+
+  --theme-color-interactive-hover: #d6b965;
+}

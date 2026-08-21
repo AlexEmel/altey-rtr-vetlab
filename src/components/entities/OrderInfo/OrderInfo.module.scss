@@ -1,0 +1,30 @@
+.orderInfo {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  gap: 1rem;
+  font-size: 0.9rem;
+  .infoGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    .infoGroupHeader {
+      gap: 0.5rem;
+      .title {
+        margin-bottom: 0.3rem;
+      }
+    }
+    .infoBox {
+      display: flex;
+      gap: 0.5rem;
+      .infoValue {
+        font-weight: 500;
+      }
+    }
+  }
+  .link {
+    text-decoration: underline;
+    color: var(--color-link);
+    cursor: pointer;
+  }
+}

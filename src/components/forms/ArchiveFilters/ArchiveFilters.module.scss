@@ -1,0 +1,18 @@
+.orderFilters {
+  .filters {
+    flex: 1;
+    .filterBox {
+      gap: 0.5rem;
+      align-items: flex-end;
+      .select {
+        width: 270px;
+      }
+      .filterLabel {
+        font-size: 14px;
+      }
+    }
+  }
+  .buttons {
+    gap: 0.5rem;
+  }
+}

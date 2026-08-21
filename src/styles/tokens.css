@@ -1,0 +1,49 @@
+:root {
+  --font-family-base: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --color-text: var(--theme-color-text);
+  --color-text-rgb: var(--theme-color-text-rgb);
+  --color-text-strong: var(--theme-color-text-strong);
+  --color-text-secondary: var(--theme-color-text-secondary);
+  --color-text-tertiary: var(--theme-color-text-tertiary);
+  --color-text-inverse: var(--theme-color-text-inverse);
+  --color-text-inverse-rgb: var(--theme-color-text-inverse-rgb);
+
+  --color-bg-app: var(--theme-color-bg-app);
+  --color-bg-surface: var(--theme-color-bg-surface);
+  --color-bg-soft: var(--theme-color-bg-soft);
+  --color-bg-header: var(--theme-color-bg-header);
+  --color-bg-login: var(--theme-color-bg-login);
+  --color-bg-selected-row: var(--theme-color-bg-selected-row);
+  --color-bg-selected-row-hover: var(--theme-color-bg-selected-row-hover);
+  --color-bg-card-active: var(--theme-color-bg-card-active);
+  --color-bg-card-disabled: var(--theme-color-bg-card-disabled);
+
+  --color-border: var(--theme-color-border);
+  --color-border-muted: var(--theme-color-border-muted);
+  --color-border-soft: var(--theme-color-border-soft);
+
+  --color-primary: var(--theme-color-primary);
+  --color-primary-rgb: var(--theme-color-primary-rgb);
+  --color-primary-hover: var(--theme-color-primary-hover);
+  --color-primary-soft: var(--theme-color-primary-soft);
+
+  --color-accent: var(--theme-color-accent);
+  --color-accent-hover: var(--theme-color-accent-hover);
+  --color-accent-rgb: var(--theme-color-accent-rgb);
+
+  --color-success: var(--theme-color-success);
+  --color-success-rgb: var(--theme-color-success-rgb);
+  --color-warning: var(--theme-color-warning);
+  --color-danger: var(--theme-color-danger);
+  --color-danger-rgb: var(--theme-color-danger-rgb);
+  --color-purple: var(--theme-color-purple);
+  --color-purple-rgb: var(--theme-color-purple-rgb);
+
+  --color-slot-active: var(--theme-color-slot-active);
+  --color-slot-reserved: var(--theme-color-slot-reserved);
+  --color-sidebar-text: var(--theme-color-sidebar-text);
+  --color-link: var(--theme-color-link);
+
+  --color-interactive-hover: var(--theme-color-interactive-hover);
+}

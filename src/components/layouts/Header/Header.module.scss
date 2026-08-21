@@ -1,0 +1,21 @@
+.appHeader {
+  height: 50px;
+  background-color: var(--color-bg-header);
+  justify-content: space-between;
+  padding: 0.2rem 1rem;
+  .title {
+    margin: 0;
+  }
+  .userInfo {
+    padding: 0.5rem 0rem;
+    align-items: center;
+    gap: 0.5rem;
+    .headerBtn {
+      color: var(--color-primary);
+      &:hover {
+        color: var(--color-accent) !important;
+        border-color: var(--color-primary) !important;
+      }
+    }
+  }
+}

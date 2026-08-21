@@ -1,0 +1,49 @@
+@use '../../../styles/mixins' as mixins;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem;
+  position: relative;
+  width: 100%;
+  .header {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--color-bg-surface);
+    .headerInfo {
+      display: flex;
+      gap: 0.5rem;
+      .arrowBack {
+        font-size: 1.5rem;
+        &:hover {
+          color: var(--color-accent);
+        }
+      }
+    }
+    .modeIcon {
+      font-size: 2rem;
+      &:hover {
+        color: var(--color-accent);
+      }
+    }
+  }
+  .tableContainer {
+    display: flex;
+    flex: 1;
+    overflow-y: auto;
+    @include mixins.noScrollBar;
+  }
+  .chartList {
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    overflow-y: auto;
+    @include mixins.noScrollBar;
+  }
+}

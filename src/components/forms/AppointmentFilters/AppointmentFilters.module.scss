@@ -1,0 +1,24 @@
+.appointmentFilters {
+  .filters {
+    flex: 1;
+    .filterBox {
+      padding-bottom: 0.5rem;
+      gap: 0.5rem;
+      align-items: flex-end;
+      .select {
+        width: 270px;
+      }
+      .filterLabel {
+        font-size: 14px;
+      }
+    }
+  }
+  .buttons {
+    flex: 1;
+    gap: 0.5rem;
+    align-items: flex-end;
+    .buttonAdd { // кнопка добавления
+        margin-left: auto;
+    }
+  }
+}

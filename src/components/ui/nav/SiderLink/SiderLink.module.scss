@@ -1,0 +1,28 @@
+.siderLink {
+  color: var(--color-sidebar-text);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  transition: all 0.3s ease-in-out;
+  .icon {
+    font-size: 2rem;
+  }
+  &:hover {
+    color: var(--color-text-inverse);
+  }
+}
+
+.collapsedTitle {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.3s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+.expandedTitle {
+  width: auto;
+  white-space: nowrap;
+  opacity: 1;
+  transition: width 0.3s ease-in-out, opacity 0.4s ease-in-out;
+}

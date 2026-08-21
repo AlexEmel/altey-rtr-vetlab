@@ -1,0 +1,176 @@
+.modalBody {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 630px;
+}
+
+.patientSection {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin-bottom: 0.5rem;
+}
+
+.inputRow {
+  display: grid;
+  gap: 12px;
+
+  &.cols4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  &.cols2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  line-height: 1.4;
+}
+
+.schedulerWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.schedulerSection {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.schedulerLeft,
+.schedulerRight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+.dateModeRadio {
+  width: 100%;
+}
+
+.dateList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.dateCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background: var(--color-bg-surface);
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+  user-select: none;
+
+  &:hover {
+    border-color: var(--color-interactive-hover);
+    color: var(--color-text-strong);
+  }
+
+  &.active {
+    border-color: var(--color-interactive-hover);
+    background: var(--color-bg-card-active);
+    font-weight: 500;
+  }
+}
+
+.dateCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  flex-shrink: 0;
+
+  .active & {
+    color: var(--color-accent);
+  }
+}
+
+.dateCardText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dateCardDate {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-strong);
+}
+
+.dateCardSlots {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+// ---- Slot grid (scrollable, fixed columns, equal cells) ----
+.slotContainer {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  align-content: start;
+}
+
+// ---- Empty state ----
+.emptyState {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+// ---- Responsive ----
+@media (max-width: 900px) {
+  .inputRow.cols4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .schedulerSection {
+    grid-template-columns: 1fr;
+  }
+
+  .slotGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
