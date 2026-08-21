@@ -1,106 +1,48 @@
-# Remote Treatment Room API Guide
+# VetLab API Guide
 
 ## Purpose
 
-This document describes the API contract used by the current frontend implementation of the Remote Treatment Room client.
+This document defines the REST API contract for the VetLab client. The sole source of truth is `agents/УПК_ВЕТЛАБ_ТЗ.docx`; do not infer or retain Remote Treatment Room (RTR) contracts from the current codebase.
 
-The implementation is the source of truth. When updating API-related code, follow the behavior and types defined in:
+When implementing API code, model requests and responses from this guide. If the technical specification changes, update this document and the relevant TypeScript interfaces together.
 
-- `src/api/`
-- `src/interfaces/`
-- Redux slices and their API consumers
+## General Contract
 
-## General Rules
-
-- Add all Remote Treatment Room requests to the API classes in `src/api/`.
-- Do not call Axios directly from pages, components, or forms.
-- Use the configured Axios instances from `src/api/index.api.ts`.
-- Normalize API responses through `handleApiRes`.
-- Reuse existing TypeScript interfaces first and extend them only when necessary.
-- Keep endpoint names, casing, HTTP methods, and parameter locations exactly as implemented unless the task explicitly changes the contract.
-- After changing API code, run at least `npm run build`; run `npm run lint` when practical.
-
-## Base Configuration
-
-### Base URLs
-
-- `VITE_API_URL` is the main API base URL.
-
-### Axios Clients
-
-- `authAxios` is used by `AuthApi`.
-- `apiAxios` is used by `RtrApi`.
-
-### Authorization
-
-Both `authAxios` and `apiAxios` attach the current token as:
-
-```http
-Authorization: Bearer <token>
-```
-
-The token is read from `store.user.token`.
-
-`apiAxios` also has a response interceptor:
-
-- on `401`, it dispatches `logout()`
-- it then rejects with `Error('Unauthorized')`
-
-Because of that interceptor, some `401` responses on protected endpoints may bypass server-provided error payloads and end up as the fallback internal error from `handleApiRes`.
-
-## Common Response Shape
-
-Shared response types are defined in `src/interfaces/app/api.interface.ts`.
+- Base URL: `http(s)://%server-name%/`.
+- JSON fields use `camelCase`.
+- Dates and date-times are ISO strings with a timezone where supplied by the API.
+- Endpoints marked as protected require `Authorization: Bearer <token>`.
+- Unless stated otherwise, responses use the envelope below.
 
 ```ts
-export interface IApiError {
-  code: string;
-  message: string;
+interface IApiError {
+  code?: string;
+  message?: string;
 }
 
-export interface IApiRes<T> {
+interface IApiRes<T> {
   success: boolean;
   payload?: T;
-  error?: IApiError;
+  error?: IApiError | string;
 }
 ```
 
-`handleApiRes` returns:
+The specification defines statuses `200`, `201`, `204`, `400`, `403`, `404`, and `500`. A missing or invalid token returns `403`; invalid query keys or values return `400`.
 
-- `res.data` on success
-- `{ success: false, error }` when Axios receives an error response containing `data.error`
-- a fallback internal error otherwise, with code `INTERNAL_ERROR` and a hardcoded localized message from `handleApiRes`
+## Authentication
 
-## Auth API
-
-Base path:
-
-```txt
-/auth/RemoteTreatmentRoom
-```
-
-### `POST /auth/RemoteTreatmentRoom/Login`
-
-Request body:
+### `POST /auth/login`
 
 ```ts
 interface ICredentials {
   username: string;
   password: string;
 }
-```
 
-Success payload:
-
-```ts
 interface IAuthRes {
   accessToken: string;
 }
-```
 
-JWT payload used by the client:
-
-```ts
 interface IJwtPayload {
   iat: number;
   exp: number;
@@ -108,500 +50,327 @@ interface IJwtPayload {
   username: string;
   organizationName: string;
   isTemporalPassword: boolean;
-  isAppointmentAccessed: boolean;
-  isArchiveAccessed: boolean;
 }
 ```
 
-Client behavior after login:
+Invalid credentials return `401`. A token with `isTemporalPassword: true` may only be used to set a permanent password.
 
-- the token is stored in Redux
-- the JWT is decoded on the client
-- if `isTemporalPassword` is `true`, the user is treated as not fully logged in and must set a new password
+### `POST /auth/set-password`
 
-## RTR API
+Protected. Body: `{ password: string }`. Returns `IApiRes<void>`. The endpoint is available only to a token with `isTemporalPassword: true`; otherwise it returns `400`. The new password must differ from the temporary password.
 
-Base path:
+## LIS Dictionaries
 
-```txt
-/remote_treatment_room/RemoteTreatmentRoom
-```
+All dictionary endpoints are protected and return an empty array when no records are found.
 
-### `POST /remote_treatment_room/RemoteTreatmentRoom/SetPassword`
+| Method and path | Payload item |
+| --- | --- |
+| `GET /dictionaries/species` | `{ _id: string; name: string }` |
+| `GET /dictionaries/breeds` | `{ _id: string; name: string; speciesId: string }` |
+| `GET /dictionaries/clients` | `{ _id: string; name: string; groupId: string; groupName: string }` |
+| `GET /dictionaries/referrers` | `{ _id: string; name: string }` |
+| `GET /dictionaries/doctors` | `{ _id: string; name: string }` |
+| `GET /dictionaries/services` | `{ _id: string; code: string; name: string; groupId: string; groupName: string; price: number }` |
 
-Request body:
+Every response is `IApiRes<T[]>`.
 
-```ts
-{ password: string }
-```
+## LIS Archive and Results
 
-Response:
+### `GET /archive`
 
-- `IApiRes<void>`
-
-## Dictionaries
-
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetDepartments`
-
-Payload:
+Protected. Returns orders created by the authenticated counterparty. All filters are optional and can be combined:
 
 ```ts
-interface IDepartment {
-  _id: string;
-  name: string;
-  parentId: string;
-}
-```
-
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetAnalysisTypes`
-
-Payload:
-
-```ts
-interface IAnalysisType {
-  _id: string;
-  name: string;
-}
-```
-
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetInsuranceTypes`
-
-Payload:
-
-```ts
-interface IInsuranceType {
-  _id: string;
-  name: string;
-}
-```
-
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetExternalFinanceSources`
-
-Payload:
-
-```ts
-interface IExternalFinanceSource {
-  _id: string;
-  name: string;
-  code: string;
-  sourceId: string;
-  sourceName: string;
-}
-```
-
-## Archive
-
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetArchive`
-
-Query params:
-
-```ts
-interface IArchiveQueryParams {
-  dateFrom: string;
-  dateTo: string;
-  historyNumber?: string;
+interface IArchiveQuery {
+  dateFrom?: string;
+  dateTo?: string;
   barcode?: string;
   sampleNumber?: string;
-  lastName?: string;
-  firstName?: string;
-  middleName?: string;
-  departmentId?: number;
-  analysisId?: string;
+  nickname?: string;
+  speciesId?: string;
+  breedId?: string;
+  ownerLastName?: string;
+  clientId?: string;
+  status?: ELisOrderStatus;
   isPathology?: boolean;
   isDefective?: boolean;
   limit?: number;
   offset?: number;
-  externalFinanceSourceId?: string;
 }
 ```
 
-Payload item:
-
 ```ts
-interface IArchiveOrderPreview {
+interface IPet {
+  _id: string;
+  nickname: string;
+  speciesId: string;
+  breedId: string | null;
+  sex: ESex;
+  bornDate: string | null;
+  age: string | null;
+  isSterilized: boolean;
+}
+
+interface IOwner {
+  _id?: string;
+  lastName: string;
+  firstName: string;
+  middleName: string | null;
+  bornDate: string | null;
+  email: string | null;
+  phone: string | null;
+  snils: string | null;
+}
+
+interface ILisService {
+  _id: string;
+  code: string;
+  name: string;
+}
+
+interface IArchiveOrder {
   _id: string;
   datetime: string;
-  status: EOrderStatus;
+  status: ELisOrderStatus;
   isPathology: boolean;
   isDefective: boolean;
-  barcode: string[];
+  barcode: string;
   sampleNumber: string;
   historyNumber: string;
-  patient: IPatient;
+  pet: IPet;
+  owner: IOwner;
   analysis: string[];
   doctor: string;
-  departmentId: number;
-  viewStatus: EViewStatus;
+  clientName: string;
   isPrinted: boolean;
-  externalFinanceSourceId: string;
 }
 ```
 
-Supporting types:
+Response: `IApiRes<IArchiveOrder[]>`.
 
-```ts
-interface IPatient {
-  _id?: string;
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  bornDate: string;
-}
+### `GET /archive/{id}`
 
-enum EOrderStatus {
-  RECEIVED = '<localized status string>',
-  DONE = '<localized status string>',
-  RESULTS = '<localized status string>',
-}
+Protected. Returns `IApiRes<IArchiveOrder & { services: ILisService[] }>` and `404` when the LIS order does not exist.
 
-enum EViewStatus {
-  NONE = 'none',
-  ORDER_READY = 'orderReady',
-  NAPR_READY = 'naprReady',
-  NAPR_SIGNED = 'naprSigned',
-  PRELIMINARY_RESULT = 'naprSignedOrPreliminaryResult',
-}
-```
+### `GET /forms/{id}`
 
-## Results
+Protected. Returns a binary PDF, not the JSON response envelope. Returns `404` when the order is missing and `403` when it is outside the user's permitted scope.
 
-Result view params come from `user.slice.ts`:
+### `GET /results/{id}`
 
-```ts
-enum EResultViewRule {
-  ORDER_DONE = 1,
-  NAPR_DONE = 2,
-  NAPR_SIGNED = 3,
-  PRELIMINARY_RESULT = 4,
-}
-
-enum EResultViewType {
-  REGULAR = 0,
-  MERGED = 1,
-  ENG = 2,
-}
-
-interface IResultViewRules {
-  view: EResultViewRule;
-  type: EResultViewType;
-  attachments: boolean;
-}
-```
-
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetResults/{id}`
-
-- `id` is passed as a path parameter
-- optional query params use `IResultViewRules`
-
-Response (pdf base64 string):
-
-- `IApiRes<string>`
-
-
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetResultsData/{id}`
-
-- `id` is passed as a path parameter
-- only `view` is sent as a query param
-
-Payload:
+Protected. Returns structured analytical results:
 
 ```ts
 interface IOrderResults {
   orderId: string;
   patientId: string;
-  groupResults: IGroupResults[];
+  groupResults: IResultGroup[];
 }
 
-interface IGroupResults {
+interface IResultGroup {
   _id: string;
   groupId: string;
   groupName: string;
+  barcode?: string;
+  sampleNumber?: string;
   methodResults: IMethodResult[];
-  barcode: string;
-  sampleNumber: string;
 }
 
 interface IMethodResult {
   _id: string;
+  // The text calls this `testName`; the supplied response example uses `paramName`.
   paramName: string;
   methodType: string;
   methodUnit?: string;
-  resultString: string;
-  resultXml: string;
+  value: string;
+  status: EResultStatus;
   methodNorms?: IMethodNorm[];
-  pathologyIndex?: number;
 }
 
 interface IMethodNorm {
-  _id: string;
   normTitle: string;
-  normRange?: {
-    min: number;
-    max: number;
-  };
+  normRange?: { min?: number; max?: number };
   normText?: string;
 }
 ```
 
-## Dynamics
+Response: `IApiRes<IOrderResults>`. `404` means the order is missing or has no results. The field name for an analyte must be confirmed with the backend: the narrative specifies `testName`, while its JSON example specifies `paramName`.
 
-### `GET /remote_treatment_room/RemoteTreatmentRoom/getDynamics`
+### `GET /dynamics`
 
-Query params:
-
-```ts
-{
-  patientId: string;
-  groupId: string;
-}
-```
-
-Payload:
+The specification does not mark this endpoint as protected. Required query parameters: `patientId` and `groupId`.
 
 ```ts
 interface IDynamics {
   patientId: string;
   groupId: string;
   groupName: string;
-  params: IDynamicParam[];
+  groupDynamics: IDynamicGroup[];
 }
 
-interface IDynamicParam {
-  _id: string;
-  paramName: string;
+interface IDynamicGroup {
+  testId: string;
+  testName: string;
   unit: string;
-  norm: IDynamicNorm;
-  results: IDynamicResult[];
-}
-
-interface IDynamicNorm {
-  low: number | null;
-  high: number | null;
-  totalNorm: string;
-}
-
-interface IDynamicResult {
-  _id: string;
-  valueMin: number | null;
-  valueMax: number | null;
-  valueString: string;
-  isPathology: boolean;
-  datetime: string;
+  normalLow: number;
+  normalHigh: number;
+  dynamicResults: Array<{ value: number; datetime: string; status: EResultStatus }>;
 }
 ```
 
-## Treatment Rooms and Quotas
+Response: `IApiRes<IDynamics>`.
 
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetTreatmentRooms`
+## Pets and Owners
 
-Payload:
+The specification does not mark these endpoints as protected.
+
+### Pets
+
+`GET /pets` requires at least one of `nickname`, `speciesId`, `breedId`, `sex`, `isSterilized`, `ownerLastName`, or `ownerId`. It returns at most the latest 100 matching records.
 
 ```ts
-interface ITreatmentRoom {
-  _id: string;
-  name: string;
+interface IPetPreview extends IPet {
+  ownerId: string;
+  ownerLastName: string;
+}
+
+interface IPetInput {
+  nickname: string;
+  speciesId: string;
+  breedId: string;
+  bornDate?: string | null;
+  age?: string | null;
+  ownerId?: string;
+  owner?: IOwnerInput;
+  sex: ESex;
+  isSterilized: boolean;
 }
 ```
 
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetTreatmentRoomQuotas`
+| Method and path | Request / response |
+| --- | --- |
+| `GET /pets` | `IApiRes<IPetPreview[]>` |
+| `GET /pets/{id}` | `IApiRes<IPetPreview>`; `404` if missing |
+| `POST /pets` | `IPetInput` -> `IApiRes<IPetPreview>`; `400` on validation failure |
+| `PATCH /pets/{id}` | `IPetInput` -> `IApiRes<IPetPreview>`; `400` on validation failure |
 
-Query params:
+`owner` creates a new owner when `ownerId` is not supplied.
+
+### Owners
 
 ```ts
-{ troomId: string }
-```
-
-Payload:
-
-```ts
-interface ITreatmentRoomQuota {
-  troomId: string;
-  quotaId: string;
-  workDay: string;
-  quotaName: string;
-  quotaStart: string;
-  quotaEnd: string;
-  isActive: boolean;
-  isReserved: boolean;
-}
-```
-
-### `POST /remote_treatment_room/RemoteTreatmentRoom/DisableQuotas`
-
-Request body:
-
-```json
-["quota-id-1", "quota-id-2"]
-```
-
-Response:
-
-- `IApiRes<void>`
-
-### `POST /remote_treatment_room/RemoteTreatmentRoom/EnableQuotas`
-
-Request body:
-
-```json
-["quota-id-1", "quota-id-2"]
-```
-
-Response:
-
-- `IApiRes<void>`
-
-## Appointments
-
-Supporting types:
-
-```ts
-enum EAppointmentPatientSex {
-  NONE = 'none',
-  MALE = 'male',
-  FEMALE = 'female',
-}
-
-enum EAppointmentStatus {
-  UNCONFIRMED = 'new',
-  CONFIRMED = 'confirmed',
-}
-
-type TAppointmentStatus = EAppointmentStatus;
-
-interface IAppointmentService {
-  serviceCode: string;
-  serviceName: string;
-}
-```
-
-### `POST /remote_treatment_room/RemoteTreatmentRoom/CreateAppointment`
-
-Request body:
-
-```ts
-interface INewAppointment {
-  troomId: string;
-  quotaId: string;
+interface IOwnerInput {
   lastName: string;
   firstName: string;
-  middleName?: string;
-  sex: EAppointmentPatientSex;
+  middleName?: string | null;
   phone: string;
-  departmentId?: string;
-  insuranceTypeId?: string;
-  services: IAppointmentService[];
+  email?: string | null;
+  bornDate: string;
+  snils?: string | null;
+}
+
+interface IOwnerRecord extends IOwnerInput {
+  _id: string;
 }
 ```
 
-Response payload:
+| Method and path | Request / response |
+| --- | --- |
+| `GET /owners` | Search by owner fields; `IApiRes<IOwnerRecord[]>` |
+| `GET /owners/{id}` | `IApiRes<IOwnerRecord>`; `404` if missing |
+| `POST /owners` | `IOwnerInput` -> `IApiRes<IOwnerRecord>`; `400` on validation failure |
+| `PATCH /owners/{id}` | `IOwnerInput` -> `IApiRes<IOwnerRecord>`; `400` on validation failure |
+
+The owner-create example returns `id`, while owner search and detail responses use `_id`. Keep this discrepancy visible until the backend contract is confirmed; do not silently normalize it in API types.
+
+## VetLab Orders
+
+### `GET /orders`
+
+Protected. Returns orders created in the remote VetLab cabinet. The optional filters are `dateFrom`, `dateTo`, `barcode`, `sampleNumber`, `nickname`, `speciesId`, `breedId`, `ownerLastName`, `clientId`, `status`, `isPathology`, `isDefective`, `limit`, and `offset`.
 
 ```ts
-interface IAppointment {
+interface IOrderSample {
+  _id: string;
+  number: string;
+  barcode: string;
+  biomaterialId: string;
+  biomaterialName: string;
+  tubeId: string;
+  tubeName: string;
+}
+
+interface IOrderDetail {
   _id: string;
   datetime: string;
-  troomId: string;
-  troomName: string;
-  quota: IAppointmentQuota;
-  status: TAppointmentStatus;
-  patient: IAppointmentPatient;
-  departmentId?: string;
-  insuranceTypeId?: string;
-  services?: IAppointmentService[];
-  createdBy: string;
+  status: EUrkOrderStatus;
+  barcode: string;
+  pet: IPet;
+  owner: IOwner;
+  analysis: string[];
+  services: ILisService[];
+  samples: IOrderSample[];
+  doctor: string;
+  clientName: string;
+  referrerId: string;
+  paymentType: string;
 }
 
-interface IAppointmentQuota {
-  _id: string;
-  quotaId: string;
-  quotaName: string;
-  workDay: string;
-  dayType: string;
-  quotaStart: string;
-  quotaEnd: string;
-  isActive: boolean;
-  isReserved: boolean;
-}
-
-interface IAppointmentPatient {
-  _id: string;
-  lastName: string;
-  firstName: string;
-  middleName?: string;
-  sex: EAppointmentPatientSex;
-  phone: string;
+interface IOrderInput {
+  petId: string;
+  clientId: string;
+  services: string[];
+  referrerId: string;
+  doctorId: string;
+  paymentType: string;
 }
 ```
 
-### `POST /remote_treatment_room/RemoteTreatmentRoom/ConfirmAppointment`
+| Method and path | Request / response |
+| --- | --- |
+| `GET /orders` | `IApiRes<IOrderDetail[]>`; list items may be less detailed |
+| `GET /orders/{id}` | `IApiRes<IOrderDetail>`; `404` if missing |
+| `POST /orders` | `IOrderInput` -> `IApiRes<IOrderDetail>`; `400` on validation failure |
+| `PATCH /orders/{id}` | `IOrderInput` -> `IApiRes<IOrderDetail>`; `400` or `404` |
+| `DELETE /orders/{id}` | `IApiRes<void>`; `404` if missing |
 
-Request body:
+An order cannot be deleted after it has been accepted by the laboratory or has saved research results.
+
+## Enumerations
 
 ```ts
-{ id: string }
-```
+enum ESex {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
 
-Response:
+enum ELisOrderStatus {
+  IN_PROGRESS = 'IN_PROGRESS',
+  RESULTS = 'RESULTS',
+  DONE = 'DONE',
+}
 
-- `IApiRes<IAppointment>`
+enum EUrkOrderStatus {
+  CREATED = 'CREATED',
+  ACCEPTED = 'ACCEPTED',
+}
 
-### `PATCH /remote_treatment_room/RemoteTreatmentRoom/EditAppointment/{id}`
-
-- `id` is a path parameter
-
-Request body:
-
-- `INewAppointment`
-
-Response:
-
-- `IApiRes<IAppointment>`
-
-### `POST /remote_treatment_room/RemoteTreatmentRoom/DeleteAppointment`
-
-Request body:
-
-```ts
-{ id: string }
-```
-
-Response:
-
-- `IApiRes<void>`
-
-### `GET /remote_treatment_room/RemoteTreatmentRoom/GetAppointments`
-
-Query params:
-
-```ts
-interface IGetAppointmentsQueryParams {
-  dateFrom: string;
-  dateTo: string;
-  troomId?: string;
-  phone?: string;
-  lastName?: string;
-  firstName?: string;
-  middleName?: string;
-  departmentId?: string;
-  insuranceTypeId?: string;
-  status?: TAppointmentStatus;
-  limit?: number;
-  offset?: number;
+enum EResultStatus {
+  NORMAL = 'NORMAL',
+  PATHOLOGY = 'PATHOLOGY',
+  LOW = 'LOW',
+  HIGH = 'HIGH',
+  CRITICAL_LOW = 'CRITICAL_LOW',
+  CRITICAL_HIGH = 'CRITICAL_HIGH',
 }
 ```
 
-Response:
+## Implementation Checklist
 
-- `IApiRes<IAppointment[]>`
+Before finishing API work, verify:
 
-
-## Change Checklist
-
-Before finishing API-related work, verify:
-
-1. The endpoint path, method, casing, and pluralization match the implemented client.
-2. Path params, query params, and request body fields are sent in the same locations as the current code.
-3. Protected endpoints use `apiAxios`; auth endpoints use `authAxios`.
-4. Response types match the existing interfaces, including optional and nullable fields.
-5. `handleApiRes` is still used for response normalization.
-6. Any contract change is reflected across interfaces, API classes, slices, and UI consumers.
-7. The project still builds successfully.
+1. The method, path, casing, and parameter placement match this guide and the VetLab technical specification.
+2. Protected endpoints send the bearer token; endpoints not marked with a key in the specification are not implicitly made protected.
+3. Binary PDF responses from `/forms/{id}` bypass JSON-envelope handling.
+4. Nullable and optional fields remain distinct in TypeScript types.
+5. The old RTR contract is not reused.

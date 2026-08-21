@@ -41,7 +41,7 @@ const initialState: IUserState = {
     attachments: false,
   },
   isLoading: false,
-  isLoggedIn: false,
+  isLoggedIn: true,
   isTempPassword: false,
 };
 

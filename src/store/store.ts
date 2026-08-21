@@ -22,7 +22,7 @@ import { listenerMiddleware } from './listeners';
 import { appointmentsSlice } from '@/features/appointments.slice';
 
 const appPersistConfig = {
-  key: 'altey-rtr-v2.2',
+  key: 'altey-rtr-vetlab-v1',
   storage,
   whitelist: ['app', 'dictionaries'],
 };
