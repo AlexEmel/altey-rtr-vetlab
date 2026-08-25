@@ -47,5 +47,5 @@ apiAxios.interceptors.response.use(
 
 export const authApi = new AuthApi(authAxios);
 export const rtrApi = new RtrApi(apiAxios);
-export const vetlabApi = new VetlabApi(apiAxios);
+export const vetlabApi = new VetlabApi(apiAxios, authAxios);
 

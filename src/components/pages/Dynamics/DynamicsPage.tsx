@@ -3,7 +3,7 @@ import { DynamicsTable } from '@/components/lists/DynamicsTable/DynamicsTable';
 import { GoBackButton } from '@/components/ui/buttons/GoBackButton/GoBackButton';
 import { Spinner } from '@/components/ui/Spinner/Spinner';
 import { getDynamics } from '@/features/dynamics.slice';
-import { IDynamicParam } from '@/interfaces/entities/dynamics.interface';
+import { IDynamicGroup } from '@/interfaces/entities/dynamics.interface';
 import { IPet } from '@/interfaces/entities/order.interface';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { AreaChartOutlined, UnorderedListOutlined } from '@ant-design/icons';
@@ -17,7 +17,7 @@ export const DynamicsPage = (): JSX.Element => {
   const isLoading = useAppSelector((store) => store.dynamics.isLoading);
   const currentOrder = useAppSelector((store) => store.archive.currentOrder);
   const dynamics = useAppSelector((store) => store.dynamics.dynamics);
-  const [chartParams, setChartParams] = useState<IDynamicParam[]>([]);
+  const [chartGroups, setChartGroups] = useState<IDynamicGroup[]>([]);
   const [mode, setMode] = useState<'list' | 'chart'>('list');
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -34,13 +34,7 @@ export const DynamicsPage = (): JSX.Element => {
 
   useEffect(() => {
     if (dynamics) {
-      const filteredParams = dynamics.params
-        .map((p) => {
-          const filteredResults = p.results.filter((r) => r.valueMin === null && r.valueMax);
-          return { ...p, results: filteredResults };
-        })
-        .filter((fp) => fp.results.length > 0);
-      setChartParams(filteredParams);
+      setChartGroups(dynamics.groupDynamics.filter((group) => group.dynamicResults.length > 0));
     }
   }, [dynamics]);
 
@@ -61,7 +55,7 @@ export const DynamicsPage = (): JSX.Element => {
             <Title level={4}>{getTitle(dynamics.groupName, currentOrder.pet)}</Title>
           </Flex>
         )}
-        {chartParams.length > 0 && (
+        {chartGroups.length > 0 && (
           <Tooltip
             title={mode === 'list' ? 'Графическое представление' : 'Табличное представление'}
             mouseEnterDelay={0.4}
@@ -80,14 +74,14 @@ export const DynamicsPage = (): JSX.Element => {
       {dynamics &&
         (mode === 'list' ? (
           <Flex className={styles.tableContainer}>
-            <DynamicsTable params={dynamics.params} />
+            <DynamicsTable groups={dynamics.groupDynamics} />
           </Flex>
         ) : (
           <Flex className={styles.chartList}>
-            {chartParams.length > 0 ? (
+            {chartGroups.length > 0 ? (
               <>
-                {chartParams.map((param) => (
-                  <DynamicChart key={param._id} param={param} />
+                {chartGroups.map((group) => (
+                  <DynamicChart key={group.testId} group={group} />
                 ))}
               </>
             ) : (

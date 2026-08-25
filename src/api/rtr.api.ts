@@ -7,7 +7,6 @@ import {
 } from '@/interfaces/entities/appointment.interface';
 import { IDepartment } from '@/interfaces/entities/department.interface';
 import { IAnalysisType } from '@/interfaces/entities/analysis-type.interface';
-import { IDynamics } from '@/interfaces/entities/dynamics.interface';
 import { IExternalFinanceSource } from '@/interfaces/entities/external-finance-source.interface';
 import { IInsuranceType } from '@/interfaces/entities/insurance-type.interface';
 import { IArchiveOrderPreview, IArchiveQueryParams } from '@/interfaces/entities/order.interface';
@@ -55,12 +54,6 @@ export class RtrApi {
   public async getResultsByOrderId(id: string, params?: IResultViewRules): Promise<IApiRes<IOrderResults>> {
     return await handleApiRes<IOrderResults>(
       this.api.get(`${this.path}/GetResultsData/${id}`, { params: { view: params?.view } }),
-    );
-  }
-
-  public async getDynamics(patientId: string, groupId: string): Promise<IApiRes<IDynamics>> {
-    return await handleApiRes<IDynamics>(
-      this.api.get(`${this.path}/getDynamics`, { params: { patientId, groupId } }),
     );
   }
 

@@ -1,40 +1,43 @@
-import { IDynamicParam } from '@/interfaces/entities/dynamics.interface';
+import { IDynamicGroup } from '@/interfaces/entities/dynamics.interface';
+import { EResultStatus } from '@/interfaces/entities/result.interface';
 import { formatUnitString } from '@/utils/common.util';
 import Table, { ColumnsType } from 'antd/es/table';
 import { FC } from 'react';
 import styles from './DynamicsTable.module.scss';
 
 interface IDynamicsTableProps {
-  params: IDynamicParam[];
+  groups: IDynamicGroup[];
 }
 
 interface IDynamicsTableCell {
   value: string;
-  isPathology: boolean;
+  status: EResultStatus;
 }
 
 interface IDynamicsTableRow {
   key: string;
-  paramName: string;
+  testName: string;
   unit: string;
   totalNorm: string;
   [key: string]: string | IDynamicsTableCell | null;
 }
 
-export const DynamicsTable: FC<IDynamicsTableProps> = ({ params }): JSX.Element => {
-  const uniqueDatetimes = Array.from(new Set(params.flatMap((p) => p.results.map((r) => r.datetime)))).sort();
+export const DynamicsTable: FC<IDynamicsTableProps> = ({ groups }): JSX.Element => {
+  const uniqueDatetimes = Array.from(
+    new Set(groups.flatMap((group) => group.dynamicResults.map((result) => result.datetime))),
+  ).sort();
 
-  const dataSource = params.map((param) => {
+  const dataSource = groups.map((group) => {
     const row: IDynamicsTableRow = {
-      key: param._id,
-      paramName: param.paramName,
-      unit: param.unit,
-      totalNorm: param.norm.totalNorm,
+      key: group.testId,
+      testName: group.testName,
+      unit: group.unit,
+      totalNorm: `${group.normalLow}–${group.normalHigh}`,
     };
 
     uniqueDatetimes.forEach((datetime) => {
-      const res = param.results.find((r) => r.datetime === datetime);
-      row[datetime] = res ? { value: res.valueString, isPathology: res.isPathology } : null;
+      const result = group.dynamicResults.find((item) => item.datetime === datetime);
+      row[datetime] = result ? { value: String(result.value), status: result.status } : null;
     });
 
     return row;
@@ -43,11 +46,11 @@ export const DynamicsTable: FC<IDynamicsTableProps> = ({ params }): JSX.Element 
   const columns: ColumnsType<IDynamicsTableRow> = [
     {
       title: 'Параметр',
-      dataIndex: 'paramName',
-      key: 'paramName',
+      dataIndex: 'testName',
+      key: 'testName',
       fixed: 'left',
       render: (_value, record) =>
-        `${record.paramName}, ${record.unit && formatUnitString(record.unit)}`,
+        `${record.testName}, ${record.unit && formatUnitString(record.unit)}`,
     },
     {
       title: 'Норма',
@@ -69,7 +72,12 @@ export const DynamicsTable: FC<IDynamicsTableProps> = ({ params }): JSX.Element 
       render: (cell: IDynamicsTableCell | null) => {
         if (!cell) return null;
         return (
-          <span className={[styles.value, cell.isPathology ? styles.redValue : styles.greenValue].join(' ')}>
+          <span
+            className={[
+              styles.value,
+              cell.status !== EResultStatus.NORMAL ? styles.redValue : styles.greenValue,
+            ].join(' ')}
+          >
             {cell.value}
           </span>
         );

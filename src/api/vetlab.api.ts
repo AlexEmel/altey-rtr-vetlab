@@ -1,6 +1,7 @@
 import { IApiRes } from '@/interfaces/app/api.interface';
 import { IBreed } from '@/interfaces/entities/breed.interface';
 import { IClient } from '@/interfaces/entities/client.interface';
+import { IDynamics } from '@/interfaces/entities/dynamics.interface';
 import { IArchiveOrderPreview, IArchiveQueryParams } from '@/interfaces/entities/order.interface';
 import { IOrderResults } from '@/interfaces/entities/result.interface';
 import { ISpecies } from '@/interfaces/entities/species.interface';
@@ -8,7 +9,10 @@ import { handleApiRes } from '@/utils/handleApiRes.util';
 import { AxiosError, AxiosInstance } from 'axios';
 
 export class VetlabApi {
-  constructor(private readonly api: AxiosInstance) {}
+  constructor(
+    private readonly api: AxiosInstance,
+    private readonly publicApi: AxiosInstance = api,
+  ) {}
 
   public async setPassword(password: string): Promise<IApiRes<void>> {
     return handleApiRes<void>(this.api.post('/auth/set-password', { password }));
@@ -36,6 +40,12 @@ export class VetlabApi {
 
   public async getOrderResults(orderId: string): Promise<IApiRes<IOrderResults>> {
     return handleApiRes<IOrderResults>(this.api.get(`/results/${orderId}`));
+  }
+
+  public async getDynamics(patientId: string, groupId: string): Promise<IApiRes<IDynamics>> {
+    return handleApiRes<IDynamics>(
+      this.publicApi.get('/dynamics', { params: { patientId, groupId } }),
+    );
   }
 
   public async getFormsPdf(orderId: string): Promise<IApiRes<Blob>> {

@@ -1,4 +1,5 @@
-import { IDynamicParam } from '@/interfaces/entities/dynamics.interface';
+import { IDynamicGroup } from '@/interfaces/entities/dynamics.interface';
+import { EResultStatus } from '@/interfaces/entities/result.interface';
 import { formatUnitString } from '@/utils/common.util';
 import { Flex } from 'antd';
 import Chart from 'chart.js/auto';
@@ -11,7 +12,7 @@ import styles from './DynamicChart.module.scss';
 Chart.register(CategoryScale, annotationPlugin);
 
 interface IDynamicChartProps {
-  param: IDynamicParam;
+  group: IDynamicGroup;
 }
 
 const getThemeColor = (token: string): string => {
@@ -22,7 +23,7 @@ const getThemeColorWithAlpha = (token: string, alpha: number): string => {
   return `rgb(${getThemeColor(token)} / ${alpha})`;
 };
 
-export const DynamicChart: FC<IDynamicChartProps> = ({ param }): JSX.Element => {
+export const DynamicChart: FC<IDynamicChartProps> = ({ group }): JSX.Element => {
   const successColor = getThemeColor('--color-success');
   const dangerColor = getThemeColor('--color-danger');
   const textColor = getThemeColor('--color-text');
@@ -32,14 +33,18 @@ export const DynamicChart: FC<IDynamicChartProps> = ({ param }): JSX.Element => 
   const purpleOverlay = getThemeColorWithAlpha('--color-purple-rgb', 0.31);
 
   const chartData: ChartData<'line'> = {
-    labels: param.results.map((d) => new Date(d.datetime).toLocaleDateString()),
+    labels: group.dynamicResults.map((result) => new Date(result.datetime).toLocaleDateString()),
     datasets: [
       {
-        label: `${param.paramName}, ${formatUnitString(param.unit)}`,
-        data: param.results.map((r) => r.valueMax),
+        label: `${group.testName}, ${formatUnitString(group.unit)}`,
+        data: group.dynamicResults.map((result) => result.value),
         fill: false,
-        backgroundColor: param.results.map((result) => (result.isPathology ? dangerColor : successColor)),
-        borderColor: param.results.map((result) => (result.isPathology ? dangerColor : primarySoft)),
+        backgroundColor: group.dynamicResults.map((result) =>
+          result.status !== EResultStatus.NORMAL ? dangerColor : successColor,
+        ),
+        borderColor: group.dynamicResults.map((result) =>
+          result.status !== EResultStatus.NORMAL ? dangerColor : primarySoft,
+        ),
         tension: 0.4,
         pointHoverRadius: 7,
         pointRadius: 4,
@@ -64,8 +69,8 @@ export const DynamicChart: FC<IDynamicChartProps> = ({ param }): JSX.Element => 
         annotations: {
           normalRangeBox: {
             type: 'box',
-            yMin: param.norm.low || -Infinity,
-            yMax: param.norm.high || Infinity,
+            yMin: group.normalLow,
+            yMax: group.normalHigh,
             backgroundColor: successOverlay,
             borderColor: transparentSuccess,
             drawTime: 'beforeDatasetsDraw',
@@ -83,12 +88,12 @@ export const DynamicChart: FC<IDynamicChartProps> = ({ param }): JSX.Element => 
     },
   };
 
-  if (param.norm.high) {
+  if (Number.isFinite(group.normalHigh)) {
     chartOptions.plugins!.annotation!.annotations = {
       ...chartOptions.plugins?.annotation?.annotations,
       highRangeBox: {
         type: 'box',
-        yMin: param.norm.high,
+        yMin: group.normalHigh,
         backgroundColor: purpleOverlay,
         borderColor: purpleOverlay,
         drawTime: 'beforeDatasetsDraw',
@@ -96,12 +101,12 @@ export const DynamicChart: FC<IDynamicChartProps> = ({ param }): JSX.Element => 
     };
   }
 
-  if (param.norm.low) {
+  if (Number.isFinite(group.normalLow)) {
     chartOptions.plugins!.annotation!.annotations = {
       ...chartOptions.plugins?.annotation?.annotations,
       lowRangeBox: {
         type: 'box',
-        yMax: param.norm.low,
+        yMax: group.normalLow,
         backgroundColor: purpleOverlay,
         borderColor: purpleOverlay,
         drawTime: 'beforeDatasetsDraw',

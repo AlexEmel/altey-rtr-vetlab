@@ -1,29 +1,23 @@
+import { EResultStatus } from './result.interface';
+
 export interface IDynamicResult {
-  _id: string;
-  valueMin: number | null;
-  valueMax: number | null;
-  valueString: string;
-  isPathology: boolean;
+  value: number;
   datetime: string;
+  status: EResultStatus;
 }
 
-export interface IDynamicNorm {
-  low: number | null;
-  high: number | null;
-  totalNorm: string;
-}
-
-export interface IDynamicParam {
-  _id: string;
-  paramName: string;
+export interface IDynamicGroup {
+  testId: string;
+  testName: string;
   unit: string;
-  norm: IDynamicNorm;
-  results: IDynamicResult[];
+  normalLow: number;
+  normalHigh: number;
+  dynamicResults: IDynamicResult[];
 }
 
 export interface IDynamics {
   patientId: string;
   groupId: string;
   groupName: string;
-  params: IDynamicParam[];
+  groupDynamics: IDynamicGroup[];
 }

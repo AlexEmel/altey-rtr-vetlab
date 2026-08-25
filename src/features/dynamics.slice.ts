@@ -1,4 +1,4 @@
-import { rtrApi } from '@/api/index.api.ts';
+import { vetlabApi } from '@/api/index.api.ts';
 import { IApiError } from '@/interfaces/app/api.interface.ts';
 import { IDynamics } from '@/interfaces/entities/dynamics.interface.ts';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
@@ -18,7 +18,7 @@ export const getDynamics = createAsyncThunk<
   { patientId: string; groupId: string },
   { rejectValue: IApiError }
 >('dynamics/getDynamics', async ({ patientId, groupId }, { rejectWithValue }) => {
-  const res = await rtrApi.getDynamics(patientId, groupId);
+  const res = await vetlabApi.getDynamics(patientId, groupId);
   if (res.success && res.payload) return res.payload;
   if (!res.success && res.error) return rejectWithValue(res.error);
   return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка получения динамической карты' });
