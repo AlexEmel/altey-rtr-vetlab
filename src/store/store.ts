@@ -20,6 +20,7 @@ import { resultSlice } from '@/features/result.slice';
 import { dynamicsSlice } from '@/features/dynamics.slice';
 import { listenerMiddleware } from './listeners';
 import { appointmentsSlice } from '@/features/appointments.slice';
+import { ordersSlice } from '@/features/orders.slice';
 
 const appPersistConfig = {
   key: 'altey-rtr-vetlab-v1',
@@ -45,6 +46,7 @@ const rootReducer = combineReducers({
   dynamics: dynamicsSlice.reducer,
   dictionaries: dictionarySlice.reducer,
   appointments: appointmentsSlice.reducer,
+  orders: ordersSlice.reducer,
 });
 
 const persistedReducer = persistReducer<ReturnType<typeof rootReducer>>(appPersistConfig, rootReducer);

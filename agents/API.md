@@ -218,7 +218,7 @@ Response: `IApiRes<IDynamics>`.
 
 ## Pets and Owners
 
-The specification does not mark these endpoints as protected.
+All `/pets` and `/owners` endpoints are protected and require `Authorization: Bearer <token>`.
 
 ### Pets
 
@@ -366,7 +366,7 @@ enum EResultStatus {
 Before finishing API work, verify:
 
 1. The method, path, casing, and parameter placement match this guide and the VetLab technical specification.
-2. Protected endpoints send the bearer token; endpoints not marked with a key in the specification are not implicitly made protected.
+2. Protected endpoints send the bearer token. This includes every `/pets` and `/owners` endpoint. Endpoints not marked as protected are not implicitly made protected.
 3. Binary PDF responses from `/forms/{id}` bypass JSON-envelope handling.
 4. Nullable and optional fields remain distinct in TypeScript types.
 5. The old RTR contract is not reused.

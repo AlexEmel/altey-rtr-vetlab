@@ -9,6 +9,11 @@ export enum ESex {
   FEMALE = 'FEMALE',
 }
 
+export enum EUrkOrderStatus {
+  CREATED = 'CREATED',
+  ACCEPTED = 'ACCEPTED',
+}
+
 export interface IPet {
   _id: string;
   nickname: string;
@@ -58,6 +63,113 @@ export interface IArchiveQueryParams {
   ownerLastName?: string;
   clientId?: string;
   status?: EOrderStatus;
+  isPathology?: boolean;
+  isDefective?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface IOwnerInput {
+  lastName: string;
+  firstName: string;
+  middleName?: string | null;
+  phone: string;
+  email?: string | null;
+  bornDate: string;
+  snils?: string | null;
+}
+
+export interface IOwnerRecord extends IOwnerInput {
+  _id: string;
+}
+
+export type IOwnerCreateResult = IOwnerInput & ({ _id: string; id?: never } | { id: string; _id?: never });
+
+export type IOwnerQueryParams = Partial<IOwnerInput>;
+
+export interface IPetPreview extends IPet {
+  ownerId: string;
+  ownerLastName: string;
+}
+
+export interface IPetInput {
+  nickname: string;
+  speciesId: string;
+  breedId: string;
+  bornDate?: string | null;
+  age?: string | null;
+  ownerId?: string;
+  owner?: IOwnerInput;
+  sex: ESex;
+  isSterilized: boolean;
+}
+
+interface IPetQueryFields {
+  nickname?: string;
+  speciesId?: string;
+  breedId?: string;
+  sex?: ESex;
+  isSterilized?: boolean;
+  ownerLastName?: string;
+  ownerId?: string;
+}
+
+export type IPetQueryParams = {
+  [K in keyof IPetQueryFields]-?: Required<Pick<IPetQueryFields, K>> & Partial<Omit<IPetQueryFields, K>>;
+}[keyof IPetQueryFields];
+
+export interface ILisService {
+  _id: string;
+  code: string;
+  name: string;
+}
+
+export interface IOrderSample {
+  _id: string;
+  number: string;
+  barcode: string;
+  biomaterialId: string;
+  biomaterialName: string;
+  tubeId: string;
+  tubeName: string;
+}
+
+export interface IOrder {
+  _id: string;
+  datetime: string;
+  status: EUrkOrderStatus;
+  barcode: string;
+  pet: IPet;
+  owner: IOwner;
+  analysis: string[];
+  services: ILisService[];
+  samples: IOrderSample[];
+  doctor: string;
+  clientName: string;
+  referrerId: string;
+  paymentType: string;
+}
+
+export interface IOrderInput {
+  petId: string;
+  clientId: string;
+  services: string[];
+  referrerId: string;
+  doctorId: string;
+  paymentType: string;
+}
+
+export interface IOrdersQueryParams {
+  dateFrom?: string;
+  dateTo?: string;
+  barcode?: string;
+  sampleNumber?: string;
+  nickname?: string;
+  speciesId?: string;
+  breedId?: string;
+  ownerLastName?: string;
+  clientId?: string;
+  status?: EUrkOrderStatus;
   isPathology?: boolean;
   isDefective?: boolean;
   limit?: number;

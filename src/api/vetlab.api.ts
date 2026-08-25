@@ -2,7 +2,20 @@ import { IApiRes } from '@/interfaces/app/api.interface';
 import { IBreed } from '@/interfaces/entities/breed.interface';
 import { IClient } from '@/interfaces/entities/client.interface';
 import { IDynamics } from '@/interfaces/entities/dynamics.interface';
-import { IArchiveOrderPreview, IArchiveQueryParams } from '@/interfaces/entities/order.interface';
+import {
+  IArchiveOrderPreview,
+  IArchiveQueryParams,
+  IOrder,
+  IOrderInput,
+  IOrdersQueryParams,
+  IOwnerCreateResult,
+  IOwnerInput,
+  IOwnerQueryParams,
+  IOwnerRecord,
+  IPetInput,
+  IPetPreview,
+  IPetQueryParams,
+} from '@/interfaces/entities/order.interface';
 import { IOrderResults } from '@/interfaces/entities/result.interface';
 import { ISpecies } from '@/interfaces/entities/species.interface';
 import { handleApiRes } from '@/utils/handleApiRes.util';
@@ -43,9 +56,59 @@ export class VetlabApi {
   }
 
   public async getDynamics(patientId: string, groupId: string): Promise<IApiRes<IDynamics>> {
-    return handleApiRes<IDynamics>(
-      this.publicApi.get('/dynamics', { params: { patientId, groupId } }),
-    );
+    return handleApiRes<IDynamics>(this.publicApi.get('/dynamics', { params: { patientId, groupId } }));
+  }
+
+  public async getPets(query: IPetQueryParams): Promise<IApiRes<IPetPreview[]>> {
+    return handleApiRes<IPetPreview[]>(this.api.get('/pets', { params: query }));
+  }
+
+  public async getPet(petId: string): Promise<IApiRes<IPetPreview>> {
+    return handleApiRes<IPetPreview>(this.api.get(`/pets/${petId}`));
+  }
+
+  public async createPet(payload: IPetInput): Promise<IApiRes<IPetPreview>> {
+    return handleApiRes<IPetPreview>(this.api.post('/pets', payload));
+  }
+
+  public async updatePet(petId: string, payload: IPetInput): Promise<IApiRes<IPetPreview>> {
+    return handleApiRes<IPetPreview>(this.api.patch(`/pets/${petId}`, payload));
+  }
+
+  public async getOwners(query: IOwnerQueryParams): Promise<IApiRes<IOwnerRecord[]>> {
+    return handleApiRes<IOwnerRecord[]>(this.api.get('/owners', { params: query }));
+  }
+
+  public async getOwner(ownerId: string): Promise<IApiRes<IOwnerRecord>> {
+    return handleApiRes<IOwnerRecord>(this.api.get(`/owners/${ownerId}`));
+  }
+
+  public async createOwner(payload: IOwnerInput): Promise<IApiRes<IOwnerCreateResult>> {
+    return handleApiRes<IOwnerCreateResult>(this.api.post('/owners', payload));
+  }
+
+  public async updateOwner(ownerId: string, payload: IOwnerInput): Promise<IApiRes<IOwnerRecord>> {
+    return handleApiRes<IOwnerRecord>(this.api.patch(`/owners/${ownerId}`, payload));
+  }
+
+  public async getOrders(query?: IOrdersQueryParams): Promise<IApiRes<IOrder[]>> {
+    return handleApiRes<IOrder[]>(this.api.get('/orders', { params: query }));
+  }
+
+  public async getOrder(orderId: string): Promise<IApiRes<IOrder>> {
+    return handleApiRes<IOrder>(this.api.get(`/orders/${orderId}`));
+  }
+
+  public async createOrder(payload: IOrderInput): Promise<IApiRes<IOrder>> {
+    return handleApiRes<IOrder>(this.api.post('/orders', payload));
+  }
+
+  public async updateOrder(orderId: string, payload: IOrderInput): Promise<IApiRes<IOrder>> {
+    return handleApiRes<IOrder>(this.api.patch(`/orders/${orderId}`, payload));
+  }
+
+  public async deleteOrder(orderId: string): Promise<IApiRes<void>> {
+    return handleApiRes<void>(this.api.delete(`/orders/${orderId}`));
   }
 
   public async getFormsPdf(orderId: string): Promise<IApiRes<Blob>> {
