@@ -2,7 +2,7 @@ import { OrderInfo } from '@/components/entities/OrderInfo/OrderInfo';
 import { SampleInfo } from '@/components/entities/SampleInfo/SampleInfo';
 import { ResultTable } from '@/components/lists/ResultTable/ResultTable';
 import { Spinner } from '@/components/ui/Spinner/Spinner';
-import { setCurrentOrder } from '@/features/archive.slice';
+import { getArchiveOrder, setCurrentOrder } from '@/features/archive.slice';
 import { getOrderResults } from '@/features/result.slice';
 import { IGroupResults } from '@/interfaces/entities/result.interface';
 import { useAppDispatch, useAppSelector } from '@/store/store';
@@ -17,6 +17,7 @@ export const ResultsPage = (): JSX.Element => {
   const currentOrder = useAppSelector((store) => store.archive.currentOrder);
   const results = useAppSelector((store) => store.results.results);
   const isLoading = useAppSelector((store) => store.results.isLoading);
+  const isOrderLoading = useAppSelector((store) => store.archive.isLoading);
   const dispatch = useAppDispatch();
   const { id } = useParams();
   const [selectedResults, setSelectedResults] = useState<IGroupResults | null>(null);
@@ -26,14 +27,10 @@ export const ResultsPage = (): JSX.Element => {
   useEffect(() => {
     if (id) {
       dispatch(setCurrentOrder(id));
+      dispatch(getArchiveOrder(id));
+      dispatch(getOrderResults(id));
     }
   }, [dispatch, id]);
-
-  useEffect(() => {
-    if (currentOrder && results?.orderId !== currentOrder._id) {
-      dispatch(getOrderResults(currentOrder._id));
-    }
-  }, [currentOrder, dispatch, results?.orderId]);
 
   useEffect(() => {
     if (results && results.groupResults.length > 0) {
@@ -116,7 +113,7 @@ export const ResultsPage = (): JSX.Element => {
     return null;
   };
 
-  return isLoading ? (
+  return isLoading || isOrderLoading ? (
     <Spinner />
   ) : (
     <Flex className={styles.page}>

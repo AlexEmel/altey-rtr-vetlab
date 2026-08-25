@@ -1,7 +1,6 @@
-import { rtrApi, vetlabApi } from '@/api/index.api.ts';
+import { vetlabApi } from '@/api/index.api.ts';
 import { IApiError } from '@/interfaces/app/api.interface.ts';
 import { IOrderResults } from '@/interfaces/entities/result.interface.ts';
-import { TRootState } from '@/store/store.ts';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 interface IStoredPdf {
@@ -33,9 +32,8 @@ export const getPdfString = createAsyncThunk<IStoredPdf, string, { rejectValue: 
 
 export const getOrderResults = createAsyncThunk<IOrderResults, string, { rejectValue: IApiError }>(
   'results/getOrderResults',
-  async (orderId, { rejectWithValue, getState }) => {
-    const { user } = getState() as TRootState;
-    const res = await rtrApi.getResultsByOrderId(orderId, user.resultViewRules);
+  async (orderId, { rejectWithValue }) => {
+    const res = await vetlabApi.getOrderResults(orderId);
     if (res.success && res.payload) return res.payload;
     if (!res.success && res.error) return rejectWithValue(res.error);
     return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка получения результатов заказа' });

@@ -1,5 +1,5 @@
 import { IPatient } from '@/interfaces/entities/patient.interface';
-import { IMethodResult } from '@/interfaces/entities/result.interface';
+import { EResultStatus, IMethodResult } from '@/interfaces/entities/result.interface';
 
 export const concatText = (arr: string[], delimiter: string = ', '): string => {
   return arr.join(`${delimiter}`);
@@ -39,11 +39,5 @@ export const formatUnitString = (input: string): string => {
   return `${before}10${superscriptExponent}${after}`;
 };
 
-export const isPathologyByIndex = (methodResult: IMethodResult): boolean => {
-  if (methodResult.pathologyIndex) {
-    if (methodResult.pathologyIndex >= 1.01 || methodResult.pathologyIndex <= -1.01) {
-      return true;
-    }
-  }
-  return false;
-};
+export const isPathologyResult = (methodResult: IMethodResult): boolean =>
+  methodResult.status !== EResultStatus.NORMAL;

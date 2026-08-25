@@ -54,7 +54,13 @@ export const ArchiveList = (): JSX.Element => {
         onChange: handleSelectOrders,
       }}
       rowKey="_id"
-      rowClassName={() => styles.customRow}
+      rowClassName={() => `${styles.customRow} ${styles.clickableRow}`}
+      onRow={(order) => ({
+        onClick: (event) => {
+          if ((event.target as HTMLElement).closest('.ant-checkbox-wrapper')) return;
+          navigate(`/archive/results/${order._id}`);
+        },
+      })}
       loading={isLoading}
       pagination={{
         pageSize: 10,

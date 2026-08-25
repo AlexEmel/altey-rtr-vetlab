@@ -1,3 +1,4 @@
+import { ARCHIVE_ORDER_STATUS_LABELS } from '@/common/archive.const';
 import { AppTag } from '@/components/ui/AppTag/AppTag';
 import { ETagColor, ETagSize } from '@/components/ui/AppTag/AppTag.types';
 import { EOrderStatus } from '@/interfaces/entities/order.interface';
@@ -26,5 +27,5 @@ export const StatusTag: FC<IStatusTagProps> = ({ status, size }): JSX.Element =>
     return color;
   };
   
-  return <AppTag text={status} color={getColor(status)} size={size} />;
+  return <AppTag text={ARCHIVE_ORDER_STATUS_LABELS[status]} color={getColor(status)} size={size} />;
 };

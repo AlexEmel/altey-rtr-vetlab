@@ -2,6 +2,10 @@
   height: 65px;
 }
 
+.clickableRow {
+  cursor: pointer;
+}
+
 .clickableCell {
   color: var(--color-link);
   font-weight: 500;

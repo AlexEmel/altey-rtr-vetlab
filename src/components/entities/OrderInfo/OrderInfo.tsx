@@ -1,8 +1,8 @@
 import { GoBackButton } from '@/components/ui/buttons/GoBackButton/GoBackButton';
 import { ETagSize } from '@/components/ui/AppTag/AppTag.types';
 import { setArchiveQuery } from '@/features/archive.slice';
-import { IArchiveOrderPreview } from '@/interfaces/entities/order.interface';
-import { useAppDispatch } from '@/store/store';
+import { ESex, IArchiveOrderPreview } from '@/interfaces/entities/order.interface';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 import { formatDatetime } from '@/utils/common.util';
 import { SearchOutlined } from '@ant-design/icons';
 import { Flex } from 'antd';
@@ -19,9 +19,13 @@ interface IOrderInfoProps {
 export const OrderInfo: FC<IOrderInfoProps> = ({ order }): JSX.Element => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const ownerName = [order.owner.lastName, order.owner.firstName, order.owner.middleName]
+  const species = useAppSelector((store) => store.dictionaries.species);
+  const breeds = useAppSelector((store) => store.dictionaries.breeds);
+  const ownerName = [order.owner?.lastName, order.owner?.firstName, order.owner?.middleName]
     .filter(Boolean)
-    .join(' ');
+    .join(' ') || 'не указан';
+  const speciesName = species.find((item) => item._id === order.pet.speciesId)?.name ?? 'не указан';
+  const breedName = breeds.find((item) => item._id === order.pet.breedId)?.name ?? 'не указана';
 
   const fillSearchWithPetData = (): void => {
     dispatch(
@@ -31,7 +35,7 @@ export const OrderInfo: FC<IOrderInfoProps> = ({ order }): JSX.Element => {
         nickname: order.pet.nickname,
         speciesId: order.pet.speciesId,
         breedId: order.pet.breedId ?? undefined,
-        ownerLastName: order.owner.lastName,
+        ownerLastName: order.owner?.lastName,
       }),
     );
     navigate('/archive');
@@ -54,10 +58,30 @@ export const OrderInfo: FC<IOrderInfoProps> = ({ order }): JSX.Element => {
           <span className={styles.infoValue}>{ownerName}</span>
         </Flex>
         <Flex className={styles.infoBox}>
+          <span>Биологический вид:</span>
+          <span className={styles.infoValue}>{speciesName}</span>
+        </Flex>
+        <Flex className={styles.infoBox}>
+          <span>Порода:</span>
+          <span className={styles.infoValue}>{breedName}</span>
+        </Flex>
+        <Flex className={styles.infoBox}>
+          <span>Пол:</span>
+          <span className={styles.infoValue}>{order.pet.sex === ESex.MALE ? 'самец' : 'самка'}</span>
+        </Flex>
+        <Flex className={styles.infoBox}>
           <span>Дата рождения:</span>
           <span className={styles.infoValue}>
             {order.pet.bornDate ? new Date(order.pet.bornDate).toLocaleDateString() : 'неизвестна'}
           </span>
+        </Flex>
+        <Flex className={styles.infoBox}>
+          <span>Возраст:</span>
+          <span className={styles.infoValue}>{order.pet.age ?? 'не указан'}</span>
+        </Flex>
+        <Flex className={styles.infoBox}>
+          <span>Стерилизация:</span>
+          <span className={styles.infoValue}>{order.pet.isSterilized ? 'да' : 'нет'}</span>
         </Flex>
       </Flex>
       <Flex className={styles.infoGroup}>

@@ -35,6 +35,17 @@ export const getArchive = createAsyncThunk<
   return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка получения архива заказов' });
 });
 
+export const getArchiveOrder = createAsyncThunk<
+  IArchiveOrderPreview,
+  string,
+  { rejectValue: IApiError }
+>('orders/getArchiveOrder', async (orderId, { rejectWithValue }) => {
+  const res = await vetlabApi.getArchiveOrder(orderId);
+  if (res.success && res.payload) return res.payload;
+  if (!res.success && res.error) return rejectWithValue(res.error);
+  return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка получения заказа' });
+});
+
 export const archiveSlice = createSlice({
   name: 'archive',
   initialState,
@@ -80,6 +91,24 @@ export const archiveSlice = createSlice({
       })
       .addCase(getArchive.rejected, (state) => {
         state.isLoading = false;
+      })
+      .addCase(getArchiveOrder.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getArchiveOrder.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentOrder = state.currentOrder
+          ? {
+              ...state.currentOrder,
+              ...action.payload,
+              pet: { ...state.currentOrder.pet, ...action.payload.pet },
+              owner: { ...state.currentOrder.owner, ...action.payload.owner },
+            }
+          : action.payload;
+      })
+      .addCase(getArchiveOrder.rejected, (state) => {
+        state.isLoading = false;
+        state.currentOrder = null;
       });
   },
 });

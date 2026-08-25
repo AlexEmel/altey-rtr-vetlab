@@ -2,6 +2,7 @@ import { IApiRes } from '@/interfaces/app/api.interface';
 import { IBreed } from '@/interfaces/entities/breed.interface';
 import { IClient } from '@/interfaces/entities/client.interface';
 import { IArchiveOrderPreview, IArchiveQueryParams } from '@/interfaces/entities/order.interface';
+import { IOrderResults } from '@/interfaces/entities/result.interface';
 import { ISpecies } from '@/interfaces/entities/species.interface';
 import { handleApiRes } from '@/utils/handleApiRes.util';
 import { AxiosError, AxiosInstance } from 'axios';
@@ -27,6 +28,14 @@ export class VetlabApi {
 
   public async getArchive(query?: IArchiveQueryParams): Promise<IApiRes<IArchiveOrderPreview[]>> {
     return handleApiRes<IArchiveOrderPreview[]>(this.api.get('/archive', { params: query }));
+  }
+
+  public async getArchiveOrder(orderId: string): Promise<IApiRes<IArchiveOrderPreview>> {
+    return handleApiRes<IArchiveOrderPreview>(this.api.get(`/archive/${orderId}`));
+  }
+
+  public async getOrderResults(orderId: string): Promise<IApiRes<IOrderResults>> {
+    return handleApiRes<IOrderResults>(this.api.get(`/results/${orderId}`));
   }
 
   public async getFormsPdf(orderId: string): Promise<IApiRes<Blob>> {
