@@ -3,8 +3,15 @@
   background-color: var(--color-bg-header);
   justify-content: space-between;
   padding: 0.2rem 1rem;
+  align-items: center;
+  .brand {
+    margin: 0;
+    color: var(--color-primary) !important;
+    letter-spacing: 0.08em;
+  }
   .title {
     margin: 0;
+    color: var(--color-primary) !important;
   }
   .userInfo {
     padding: 0.5rem 0rem;
@@ -12,9 +19,12 @@
     gap: 0.5rem;
     .headerBtn {
       color: var(--color-primary);
+      background-color: var(--color-bg-app);
+      border-color: rgb(var(--color-primary-rgb) / 0.45);
       &:hover {
         color: var(--color-accent) !important;
-        border-color: var(--color-primary) !important;
+        background-color: var(--color-bg-app) !important;
+        border-color: var(--color-accent) !important;
       }
     }
   }

@@ -11,10 +11,10 @@
   --theme-color-bg-app: #ffffff;
   --theme-color-bg-surface: #ffffff;
   --theme-color-bg-soft: #f4ecff;
-  --theme-color-bg-header: #eaebf1;
+  --theme-color-bg-header: #e7e5f4;
   --theme-color-bg-login: #d3d6ec;
-  --theme-color-bg-selected-row: #fffade;
-  --theme-color-bg-selected-row-hover: #f7f0cb;
+  --theme-color-bg-selected-row: #fff1e6;
+  --theme-color-bg-selected-row-hover: #ffe3cc;
   --theme-color-bg-card-active: #fef9ec;
   --theme-color-bg-card-disabled: #efeff1;
 
@@ -23,13 +23,13 @@
   --theme-color-border-soft: #cbdeff;
 
   --theme-color-primary: #322c80;
-  --theme-color-primary-rgb: 46 57 110;
+  --theme-color-primary-rgb: 50 44 128;
   --theme-color-primary-hover: #0a185f;
-  --theme-color-primary-soft: rgb(46 57 110 / 0.6);
+  --theme-color-primary-soft: rgb(50 44 128 / 0.6);
 
   --theme-color-accent: #f77e1c;
   --theme-color-accent-hover: #d6b965;
-  --theme-color-accent-rgb: 255 179 82;
+  --theme-color-accent-rgb: 247 126 28;
 
   --theme-color-success: #3d9259;
   --theme-color-success-rgb: 61 146 89;

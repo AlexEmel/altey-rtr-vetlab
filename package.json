@@ -17,7 +17,6 @@
     "chartjs-plugin-annotation": "^3.1.0",
     "chartjs-plugin-zoom": "^2.2.0",
     "dayjs": "^1.11.13",
-    "jwt-decode": "^4.0.0",
     "react": "^18.3.1",
     "react-barcode": "^1.6.1",
     "react-chartjs-2": "^5.3.0",

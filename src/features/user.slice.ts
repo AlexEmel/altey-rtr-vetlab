@@ -1,8 +1,7 @@
 import { authApi, vetlabApi } from '@/api/index.api';
-import { IAuthRes, ICredentials, IJwtPayload } from '@/interfaces/app/auth.interface';
+import { IAuthRes, ICredentials, IUserInfo } from '@/interfaces/app/auth.interface';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { IApiError } from '@/interfaces/app/api.interface';
-import { jwtDecode } from 'jwt-decode';
 
 export enum EResultViewRule {
   ORDER_DONE = 1,
@@ -25,7 +24,7 @@ export interface IResultViewRules {
 
 interface IUserState {
   token: string | null;
-  userInfo: IJwtPayload | null;
+  userInfo: IUserInfo | null;
   resultViewRules: IResultViewRules;
   isLoading: boolean;
   isLoggedIn: boolean;
@@ -78,15 +77,19 @@ export const userSlice = createSlice({
     builder
       .addCase(login.pending, (state) => {
         state.isLoading = true;
+        state.token = null;
+        state.userInfo = null;
         state.isLoggedIn = false;
         state.isTempPassword = false;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.token = action.payload.accessToken;
-        const decoded = jwtDecode(action.payload.accessToken) as IJwtPayload;
-        state.userInfo = decoded;
-        if (decoded.isTemporalPassword) {
+        state.userInfo = {
+          username: action.payload.username,
+          organizationName: action.payload.organizationName,
+        };
+        if (action.payload.isTemporalPassword) {
           state.isLoggedIn = false;
           state.isTempPassword = true;
         } else {
@@ -96,6 +99,8 @@ export const userSlice = createSlice({
       })
       .addCase(login.rejected, (state) => {
         state.isLoading = false;
+        state.token = null;
+        state.userInfo = null;
         state.isLoggedIn = false;
         state.isTempPassword = false;
       })
@@ -105,6 +110,8 @@ export const userSlice = createSlice({
       })
       .addCase(setPassword.fulfilled, (state) => {
         state.isLoading = false;
+        state.token = null;
+        state.userInfo = null;
         state.isLoggedIn = false;
         state.isTempPassword = false;
       })

@@ -1,4 +1,3 @@
-import { AppLogo } from '@/components/ui/Logo/Logo';
 import { resetArchive } from '@/features/archive.slice';
 import { logout } from '@/features/user.slice';
 import { resetResultSlice } from '@/features/result.slice';
@@ -27,7 +26,9 @@ export const AppHeader = (): JSX.Element => {
   return (
     <Flex className={styles.appHeader}>
       <Flex>
-        <AppLogo />
+        <Title level={2} className={styles.brand}>
+          ВЕТЛАБ
+        </Title>
       </Flex>
       <Flex className={styles.userInfo}>
         <Title level={5} className={styles.title}>

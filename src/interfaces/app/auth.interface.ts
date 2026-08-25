@@ -5,13 +5,12 @@ export interface ICredentials {
 
 export interface IAuthRes {
   accessToken: string;
-}
-
-export interface IJwtPayload {
-  iat: number;
-  exp: number;
-  sub: string;
   username: string;
   organizationName: string;
   isTemporalPassword: boolean;
+}
+
+export interface IUserInfo {
+  username: string;
+  organizationName: string;
 }

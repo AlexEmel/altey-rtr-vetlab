@@ -41,19 +41,15 @@ interface ICredentials {
 
 interface IAuthRes {
   accessToken: string;
-}
-
-interface IJwtPayload {
-  iat: number;
-  exp: number;
-  sub: string;
   username: string;
   organizationName: string;
   isTemporalPassword: boolean;
 }
 ```
 
-Invalid credentials return `401`. A token with `isTemporalPassword: true` may only be used to set a permanent password.
+User information and the temporary-password flag are returned in the response payload and must not be decoded from the access token. The client treats `accessToken` as opaque.
+
+Invalid credentials return `401`. When `isTemporalPassword` is `true`, the returned token may only be used to set a permanent password.
 
 ### `POST /auth/set-password`
 

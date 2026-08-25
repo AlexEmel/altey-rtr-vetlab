@@ -37,7 +37,8 @@ const getErrorMessage = (action: unknown, fallback: string): string => {
 //USER SLICE THUNKS
 startAppListening({
   actionCreator: login.fulfilled,
-    effect: async (_, api) => {
+  effect: async (action, api) => {
+    if (action.payload.isTemporalPassword) return;
     api.dispatch(getSpecies());
     api.dispatch(getBreeds());
     api.dispatch(getClients());
