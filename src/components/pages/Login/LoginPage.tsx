@@ -11,23 +11,13 @@ import Title from 'antd/es/typography/Title';
 export const LoginPage = (): JSX.Element => {
   const isTempPassword = useAppSelector((store) => store.user.isTempPassword);
   const isLoggedIn = useAppSelector((store) => store.user.isLoggedIn);
-  const userProfile = useAppSelector((store) => store.user.userInfo);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isLoggedIn && userProfile) {
-      let homepage: string;
-      if (userProfile.isArchiveAccessed) {
-        homepage = '/archive';
-      } else if (userProfile.isAppointmentAccessed) {
-        homepage = '/appointments';
-      } else {
-        homepage = '/profile';
-      }
-
-      navigate(homepage, { replace: true });
+    if (isLoggedIn) {
+      navigate('/archive', { replace: true });
     }
-  }, [isLoggedIn, navigate, userProfile]);
+  }, [isLoggedIn, navigate]);
 
   return (
     <Flex vertical className={styles.container}>

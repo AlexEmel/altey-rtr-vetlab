@@ -1,4 +1,4 @@
-import { rtrApi } from '@/api/index.api.ts';
+import { rtrApi, vetlabApi } from '@/api/index.api.ts';
 import { IApiError } from '@/interfaces/app/api.interface.ts';
 import { IOrderResults } from '@/interfaces/entities/result.interface.ts';
 import { TRootState } from '@/store/store.ts';
@@ -6,7 +6,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 interface IStoredPdf {
   orderId: string | null;
-  base64String: string | null;
+  pdf: Blob | null;
 }
 
 interface IResultState {
@@ -17,16 +17,15 @@ interface IResultState {
 
 const initialState: IResultState = {
   results: null,
-  storedPdf: { orderId: null, base64String: null },
+  storedPdf: { orderId: null, pdf: null },
   isLoading: false,
 };
 
 export const getPdfString = createAsyncThunk<IStoredPdf, string, { rejectValue: IApiError }>(
   'results/getPdfString',
-  async (orderId, { rejectWithValue, getState }) => {
-    const { user } = getState() as TRootState;
-    const res = await rtrApi.getPdfByOrderId(orderId, user.resultViewRules);
-    if (res.success && res.payload) return { orderId: orderId, base64String: res.payload };
+  async (orderId, { rejectWithValue }) => {
+    const res = await vetlabApi.getFormsPdf(orderId);
+    if (res.success && res.payload) return { orderId, pdf: res.payload };
     if (!res.success && res.error) return rejectWithValue(res.error);
     return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка получения бланка результатов' });
   },
@@ -49,7 +48,7 @@ export const resultSlice = createSlice({
   reducers: {
     resetResultSlice: () => initialState,
     resetStoredPdf: (state) => {
-      state.storedPdf = { orderId: null, base64String: null };
+      state.storedPdf = { orderId: null, pdf: null };
     },
     resetResults: (state) => {
       state.results = null;
@@ -59,7 +58,7 @@ export const resultSlice = createSlice({
     builder
       .addCase(getPdfString.pending, (state) => {
         state.isLoading = true;
-        state.storedPdf = { orderId: null, base64String: null };
+        state.storedPdf = { orderId: null, pdf: null };
       })
       .addCase(getPdfString.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -67,7 +66,7 @@ export const resultSlice = createSlice({
       })
       .addCase(getPdfString.rejected, (state) => {
         state.isLoading = false;
-        state.storedPdf = { orderId: null, base64String: null };
+        state.storedPdf = { orderId: null, pdf: null };
       })
       .addCase(getOrderResults.pending, (state) => {
         state.isLoading = true;

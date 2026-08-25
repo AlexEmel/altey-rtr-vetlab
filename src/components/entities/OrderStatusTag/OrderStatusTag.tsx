@@ -18,7 +18,7 @@ export const StatusTag: FC<IStatusTagProps> = ({ status, size }): JSX.Element =>
       case EOrderStatus.RESULTS:
         color = ETagColor.PURPLE;
         break;
-      case EOrderStatus.RECEIVED:
+      case EOrderStatus.IN_PROGRESS:
       default:
         color = ETagColor.BLUE;
         break;

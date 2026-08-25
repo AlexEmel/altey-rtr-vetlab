@@ -1,4 +1,4 @@
-import { rtrApi } from '@/api/index.api.ts';
+import { vetlabApi } from '@/api/index.api.ts';
 import { IApiError } from '@/interfaces/app/api.interface.ts';
 import { IArchiveOrderPreview, IArchiveQueryParams } from '@/interfaces/entities/order.interface.ts';
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
@@ -17,10 +17,7 @@ const initialState: IArchiveState = {
   currentPage: null,
   selectedOrders: [],
   currentOrder: null,
-  archiveQuery: {
-    dateFrom: new Date(Date.now()).toISOString(),
-    dateTo: new Date(Date.now()).toISOString(),
-  },
+  archiveQuery: {},
   isLoading: false,
 };
 
@@ -29,7 +26,7 @@ export const getArchive = createAsyncThunk<
   IArchiveQueryParams | undefined,
   { rejectValue: IApiError }
 >('orders/getArchive', async (query, { rejectWithValue, dispatch }) => {
-  const res = await rtrApi.getArchive(query);
+  const res = await vetlabApi.getArchive(query);
   if (res.success && res.payload) {
     dispatch(setCurrentPage(null));
     return res.payload;
@@ -57,10 +54,7 @@ export const archiveSlice = createSlice({
       state.archiveQuery = {...state.archiveQuery, ...action.payload};
     },
     resetArchiveQuery: (state) => {
-      state.archiveQuery = {
-        dateFrom: new Date(Date.now()).toISOString(),
-        dateTo: new Date(Date.now()).toISOString(),
-      };
+      state.archiveQuery = {};
     },
     setSelectedOrders: (state, action: PayloadAction<string[]>) => {
       state.selectedOrders = action.payload;

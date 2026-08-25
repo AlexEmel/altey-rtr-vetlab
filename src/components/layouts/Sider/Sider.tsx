@@ -22,7 +22,6 @@ export interface INavLink {
 }
 
 export const AppSider = (): JSX.Element => {
-  const userInfo = useAppSelector((store) => store.user.userInfo);
   const isSidebarCollapsed = useAppSelector((store) => store.app.ui.isSidebarCollapsed);
   const dispatch = useAppDispatch();
 
@@ -32,19 +31,19 @@ export const AppSider = (): JSX.Element => {
       path: '/archive',
       title: 'Архив заказов',
       icon: ReadOutlined,
-      show: userInfo?.isArchiveAccessed || false,
+      show: true,
     },
     {
       path: '/appointments',
       title: 'Записи',
       icon: CalendarOutlined,
-      show: userInfo?.isAppointmentAccessed || false,
+      show: true,
     },
     {
       path: '/quotas',
       title: 'Квоты',
       icon: FieldTimeOutlined,
-      show: userInfo?.isAppointmentAccessed || false,
+      show: true,
     },
     { path: '/reports', title: 'Отчёты', icon: BarChartOutlined, show: false },
   ];

@@ -3,7 +3,7 @@ import { getPdfString } from '@/features/result.slice';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { DoubleLeftOutlined, DoubleRightOutlined } from '@ant-design/icons';
 import { Button, Flex } from 'antd';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { useParams } from 'react-router-dom';
@@ -36,18 +36,6 @@ export const PdfPage = (): JSX.Element => {
   const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
   const goToNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, numPages));
 
-  const convertBase64ToPdfUrl = useCallback((base64: string) => {
-    const binaryData = atob(base64);
-    const arrayBuffer = new Uint8Array(binaryData.length);
-
-    for (let i = 0; i < binaryData.length; i++) {
-      arrayBuffer[i] = binaryData.charCodeAt(i);
-    }
-
-    const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
-    return URL.createObjectURL(pdfBlob);
-  }, []);
-
   useEffect(() => {
     if (id && storedPdf.orderId !== id) {
       dispatch(getPdfString(id));
@@ -56,15 +44,15 @@ export const PdfPage = (): JSX.Element => {
   }, [dispatch, id, storedPdf.orderId]);
 
   useEffect(() => {
-    if (storedPdf.base64String && storedPdf.orderId === id) {
-      const nextPdfUrl = convertBase64ToPdfUrl(storedPdf.base64String);
+    if (storedPdf.pdf && storedPdf.orderId === id) {
+      const nextPdfUrl = URL.createObjectURL(storedPdf.pdf);
       setPdfUrl(nextPdfUrl);
 
       return () => {
         URL.revokeObjectURL(nextPdfUrl);
       };
     }
-  }, [convertBase64ToPdfUrl, id, storedPdf.base64String, storedPdf.orderId]);
+  }, [id, storedPdf.pdf, storedPdf.orderId]);
 
   const onDocumentLoadSuccess = ({ numPages: totalPages }: { numPages: number }): void => {
     setNumPages(totalPages);

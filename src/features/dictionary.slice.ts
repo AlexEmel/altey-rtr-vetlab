@@ -1,10 +1,13 @@
-import { rtrApi } from '@/api/index.api.ts';
+import { rtrApi, vetlabApi } from '@/api/index.api.ts';
 import { IApiError } from '@/interfaces/app/api.interface.ts';
 import { IDepartment } from '@/interfaces/entities/department.interface.ts';
 import { IAnalysisType } from '@/interfaces/entities/analysis-type.interface';
 import { IExternalFinanceSource } from '@/interfaces/entities/external-finance-source.interface';
 import { IInsuranceType } from '@/interfaces/entities/insurance-type.interface';
 import { ITreatmentRoom } from '@/interfaces/entities/treatment-room.interface';
+import { ISpecies } from '@/interfaces/entities/species.interface';
+import { IBreed } from '@/interfaces/entities/breed.interface';
+import { IClient } from '@/interfaces/entities/client.interface';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 interface IDictionaryState {
@@ -13,6 +16,9 @@ interface IDictionaryState {
   externalFinanceSources: IExternalFinanceSource[];
   insuranceTypes: IInsuranceType[];
   treatmentRooms: ITreatmentRoom[];
+  species: ISpecies[];
+  breeds: IBreed[];
+  clients: IClient[];
   isLoading: boolean;
 }
 
@@ -22,6 +28,9 @@ const initialState: IDictionaryState = {
   externalFinanceSources: [],
   insuranceTypes: [],
   treatmentRooms: [],
+  species: [],
+  breeds: [],
+  clients: [],
   isLoading: false,
 };
 
@@ -73,6 +82,36 @@ export const getTreatmentRooms = createAsyncThunk<ITreatmentRoom[], undefined, {
     if (!res.success && res.error) return rejectWithValue(res.error);
     return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка получения справочников' });
   }
+);
+
+export const getSpecies = createAsyncThunk<ISpecies[], undefined, { rejectValue: IApiError }>(
+  'dictionaries/getSpecies',
+  async (_, { rejectWithValue }) => {
+    const res = await vetlabApi.getSpecies();
+    if (res.success && res.payload) return res.payload;
+    if (!res.success && res.error) return rejectWithValue(res.error);
+    return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Unable to load species dictionary' });
+  },
+);
+
+export const getBreeds = createAsyncThunk<IBreed[], undefined, { rejectValue: IApiError }>(
+  'dictionaries/getBreeds',
+  async (_, { rejectWithValue }) => {
+    const res = await vetlabApi.getBreeds();
+    if (res.success && res.payload) return res.payload;
+    if (!res.success && res.error) return rejectWithValue(res.error);
+    return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Unable to load breeds dictionary' });
+  },
+);
+
+export const getClients = createAsyncThunk<IClient[], undefined, { rejectValue: IApiError }>(
+  'dictionaries/getClients',
+  async (_, { rejectWithValue }) => {
+    const res = await vetlabApi.getClients();
+    if (res.success && res.payload) return res.payload;
+    if (!res.success && res.error) return rejectWithValue(res.error);
+    return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Unable to load clients dictionary' });
+  },
 );
 
 export const dictionarySlice = createSlice({
@@ -131,6 +170,36 @@ export const dictionarySlice = createSlice({
         state.treatmentRooms = action.payload;
       })
       .addCase(getTreatmentRooms.rejected, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(getSpecies.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getSpecies.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.species = action.payload;
+      })
+      .addCase(getSpecies.rejected, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(getBreeds.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getBreeds.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.breeds = action.payload;
+      })
+      .addCase(getBreeds.rejected, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(getClients.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getClients.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.clients = action.payload;
+      })
+      .addCase(getClients.rejected, (state) => {
         state.isLoading = false;
       });
   },

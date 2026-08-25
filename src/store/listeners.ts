@@ -8,6 +8,9 @@ import {
   getExternalFinanceSources,
   getInsuranceTypes,
   getTreatmentRooms,
+  getSpecies,
+  getBreeds,
+  getClients,
 } from '@/features/dictionary.slice';
 import { getArchive } from '@/features/archive.slice';
 import { getDynamics } from '@/features/dynamics.slice';
@@ -35,11 +38,9 @@ const getErrorMessage = (action: unknown, fallback: string): string => {
 startAppListening({
   actionCreator: login.fulfilled,
     effect: async (_, api) => {
-    api.dispatch(getDepartments());
-    api.dispatch(getAnalysisTypes());
-    api.dispatch(getExternalFinanceSources());
-    api.dispatch(getInsuranceTypes());
-    api.dispatch(getTreatmentRooms());
+    api.dispatch(getSpecies());
+    api.dispatch(getBreeds());
+    api.dispatch(getClients());
   },
 });
 
@@ -72,6 +73,9 @@ startAppListening({
     getExternalFinanceSources.rejected,
     getInsuranceTypes.rejected,
     getTreatmentRooms.rejected,
+    getSpecies.rejected,
+    getBreeds.rejected,
+    getClients.rejected,
   ),
   effect: async (action) => {
     notify('error', getErrorMessage(action, 'Ошибка получения справочников'));

@@ -4,9 +4,8 @@ import { GoBackButton } from '@/components/ui/buttons/GoBackButton/GoBackButton'
 import { Spinner } from '@/components/ui/Spinner/Spinner';
 import { getDynamics } from '@/features/dynamics.slice';
 import { IDynamicParam } from '@/interfaces/entities/dynamics.interface';
-import { IPatient } from '@/interfaces/entities/patient.interface';
+import { IPet } from '@/interfaces/entities/order.interface';
 import { useAppDispatch, useAppSelector } from '@/store/store';
-import { getPatientFullName } from '@/utils/common.util';
 import { AreaChartOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import { Flex, Tooltip } from 'antd';
 import Title from 'antd/es/typography/Title';
@@ -45,9 +44,9 @@ export const DynamicsPage = (): JSX.Element => {
     }
   }, [dynamics]);
 
-  const getTitle = (groupName: string, patient: IPatient): string => {
-    const patientFullName = getPatientFullName(patient);
-    const bornDateString = new Date(patient.bornDate).toLocaleDateString();
+  const getTitle = (groupName: string, patient: IPet): string => {
+    const patientFullName = patient.nickname;
+    const bornDateString = patient.bornDate ? new Date(patient.bornDate).toLocaleDateString() : 'неизвестна';
     return `${groupName}. Пациент: ${patientFullName}, ${bornDateString} г.р.`;
   };
 
@@ -59,7 +58,7 @@ export const DynamicsPage = (): JSX.Element => {
         {currentOrder && dynamics && (
           <Flex className={styles.headerInfo}>
             <GoBackButton />
-            <Title level={4}>{getTitle(dynamics.groupName, currentOrder.patient)}</Title>
+            <Title level={4}>{getTitle(dynamics.groupName, currentOrder.pet)}</Title>
           </Flex>
         )}
         {chartParams.length > 0 && (

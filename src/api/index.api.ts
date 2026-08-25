@@ -4,6 +4,7 @@ import { TRootState, useAppDispatch } from '@/store/store.ts';
 import { logout } from '@/features/user.slice';
 import { AuthApi } from './auth.api';
 import { RtrApi } from './rtr.api';
+import { VetlabApi } from './vetlab.api';
 
 type AppStore = Store<TRootState>;
 
@@ -31,15 +32,6 @@ apiAxios.interceptors.request.use((config) => {
   return config;
 });
 
-authAxios.interceptors.request.use((config) => {
-  try {
-    config.headers.Authorization = `Bearer ${appStore.getState().user.token}`;
-  } catch (err) {
-    console.log(err);
-  }
-  return config;
-});
-
 apiAxios.interceptors.response.use(
   (response) => {
     return response;
@@ -55,4 +47,5 @@ apiAxios.interceptors.response.use(
 
 export const authApi = new AuthApi(authAxios);
 export const rtrApi = new RtrApi(apiAxios);
+export const vetlabApi = new VetlabApi(apiAxios);
 

@@ -1,26 +1,34 @@
-import { IPatient } from './patient.interface';
-
 export enum EOrderStatus {
-  RECEIVED = 'принят',
-  DONE = 'готов',
-  RESULTS = 'результаты',
+  IN_PROGRESS = 'IN_PROGRESS',
+  RESULTS = 'RESULTS',
+  DONE = 'DONE',
 }
 
-export enum EViewStatus {
-  NONE = 'none',
-  ORDER_READY = 'orderReady',
-  NAPR_READY = 'naprReady',
-  NAPR_SIGNED = 'naprSigned',
-  PRELIMINARY_RESULT = 'naprSignedOrPreliminaryResult',
+export enum ESex {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
 }
 
-export const ViewStatusWeight = {
-  [EViewStatus.NONE]: 0,
-  [EViewStatus.ORDER_READY]: 1,
-  [EViewStatus.NAPR_READY]: 2,
-  [EViewStatus.NAPR_SIGNED]: 3,
-  [EViewStatus.PRELIMINARY_RESULT]: 4,
-};
+export interface IPet {
+  _id: string;
+  nickname: string;
+  speciesId: string;
+  breedId: string | null;
+  sex: ESex;
+  bornDate: string | null;
+  age: string | null;
+  isSterilized: boolean;
+}
+
+export interface IOwner {
+  lastName: string;
+  firstName: string;
+  middleName: string | null;
+  bornDate: string | null;
+  email: string | null;
+  phone: string | null;
+  snils: string | null;
+}
 
 export interface IArchiveOrderPreview {
   _id: string;
@@ -28,32 +36,30 @@ export interface IArchiveOrderPreview {
   status: EOrderStatus;
   isPathology: boolean;
   isDefective: boolean;
-  barcode: string[];
+  barcode: string;
   sampleNumber: string;
   historyNumber: string;
-  patient: IPatient;
+  pet: IPet;
+  owner: IOwner;
   analysis: string[];
   doctor: string;
-  departmentId: number;
-  viewStatus: EViewStatus;
+  clientName: string;
   isPrinted: boolean;
-  externalFinanceSourceId: string;
 }
 
 export interface IArchiveQueryParams {
-  dateFrom: string;
-  dateTo: string;
-  historyNumber?: string;
+  dateFrom?: string;
+  dateTo?: string;
   barcode?: string;
   sampleNumber?: string;
-  lastName?: string;
-  firstName?: string;
-  middleName?: string;
-  departmentId?: number;
-  analysisId?: string;
+  nickname?: string;
+  speciesId?: string;
+  breedId?: string;
+  ownerLastName?: string;
+  clientId?: string;
+  status?: EOrderStatus;
   isPathology?: boolean;
   isDefective?: boolean;
   limit?: number;
   offset?: number;
-  externalFinanceSourceId?: string;
 }

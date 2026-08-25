@@ -1,4 +1,4 @@
-import { authApi, rtrApi } from '@/api/index.api';
+import { authApi, vetlabApi } from '@/api/index.api';
 import { IAuthRes, ICredentials, IJwtPayload } from '@/interfaces/app/auth.interface';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { IApiError } from '@/interfaces/app/api.interface';
@@ -41,7 +41,7 @@ const initialState: IUserState = {
     attachments: false,
   },
   isLoading: false,
-  isLoggedIn: true,
+  isLoggedIn: false,
   isTempPassword: false,
 };
 
@@ -58,7 +58,7 @@ export const login = createAsyncThunk<IAuthRes, ICredentials, { rejectValue: IAp
 export const setPassword = createAsyncThunk<boolean, string, { rejectValue: IApiError }>(
   'user/setPassword',
   async (password, { rejectWithValue }) => {
-    const res = await rtrApi.setPassword(password);
+    const res = await vetlabApi.setPassword(password);
     if (res.success) return true;
     if (!res.success && res.error) return rejectWithValue(res.error!);
     return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка смены пароля' });

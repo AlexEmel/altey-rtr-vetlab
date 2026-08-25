@@ -14,6 +14,4 @@ export interface IJwtPayload {
   username: string;
   organizationName: string;
   isTemporalPassword: boolean;
-  isAppointmentAccessed: boolean;
-  isArchiveAccessed: boolean;
 }
