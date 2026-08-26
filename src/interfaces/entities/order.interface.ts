@@ -1,4 +1,4 @@
-export enum EOrderStatus {
+export enum ELisOrderStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   RESULTS = 'RESULTS',
   DONE = 'DONE',
@@ -9,7 +9,7 @@ export enum ESex {
   FEMALE = 'FEMALE',
 }
 
-export enum EUrkOrderStatus {
+export enum EOrderStatus {
   CREATED = 'CREATED',
   ACCEPTED = 'ACCEPTED',
 }
@@ -26,6 +26,7 @@ export interface IPet {
 }
 
 export interface IOwner {
+  _id?: string;
   lastName: string;
   firstName: string;
   middleName: string | null;
@@ -38,7 +39,7 @@ export interface IOwner {
 export interface IArchiveOrderPreview {
   _id: string;
   datetime: string;
-  status: EOrderStatus;
+  status: ELisOrderStatus;
   isPathology: boolean;
   isDefective: boolean;
   barcode: string;
@@ -62,7 +63,7 @@ export interface IArchiveQueryParams {
   breedId?: string;
   ownerLastName?: string;
   clientId?: string;
-  status?: EOrderStatus;
+  status?: ELisOrderStatus;
   isPathology?: boolean;
   isDefective?: boolean;
   limit?: number;
@@ -137,7 +138,7 @@ export interface IOrderSample {
 export interface IOrder {
   _id: string;
   datetime: string;
-  status: EUrkOrderStatus;
+  status: EOrderStatus;
   barcode: string;
   pet: IPet;
   owner: IOwner;
@@ -147,16 +148,14 @@ export interface IOrder {
   doctor: string;
   clientName: string;
   referrerId: string;
-  paymentType: string;
 }
 
 export interface IOrderInput {
   petId: string;
   clientId: string;
   services: string[];
-  referrerId: string;
-  doctorId: string;
-  paymentType: string;
+  referrerId?: string;
+  doctorId?: string;
 }
 
 export interface IOrdersQueryParams {
@@ -169,9 +168,7 @@ export interface IOrdersQueryParams {
   breedId?: string;
   ownerLastName?: string;
   clientId?: string;
-  status?: EUrkOrderStatus;
-  isPathology?: boolean;
-  isDefective?: boolean;
+  status?: EOrderStatus;
   limit?: number;
   offset?: number;
 }

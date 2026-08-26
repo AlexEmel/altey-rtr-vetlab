@@ -148,7 +148,6 @@ export const AppointmentFilters = ({ onCreateAppointment }: IAppointmentFilter):
         <Flex className={styles.filterBox}>
           <Flex vertical>
             <span className={styles.filterLabel}>Номер телефона:</span>
-            <span className={styles.filterLabel}>Номер телефона:</span>
             <Input
               value={appointmentsQuery.phone}
               onChange={(e) =>

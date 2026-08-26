@@ -7,6 +7,7 @@ import {
   DoubleLeftOutlined,
   DoubleRightOutlined,
   FieldTimeOutlined,
+  FormOutlined,
   ReadOutlined,
   ShoppingCartOutlined,
 } from '@ant-design/icons';
@@ -27,6 +28,7 @@ export const AppSider = (): JSX.Element => {
 
   const navlinks: INavLink[] = [
     { path: '/new-order', title: 'Новый заказ', icon: ShoppingCartOutlined, show: false },
+    { path: '/orders', title: 'Заказы', icon: FormOutlined, show: true },
     {
       path: '/archive',
       title: 'Архив заказов',

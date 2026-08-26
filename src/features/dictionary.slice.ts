@@ -8,6 +8,9 @@ import { ITreatmentRoom } from '@/interfaces/entities/treatment-room.interface';
 import { ISpecies } from '@/interfaces/entities/species.interface';
 import { IBreed } from '@/interfaces/entities/breed.interface';
 import { IClient } from '@/interfaces/entities/client.interface';
+import { IDoctor } from '@/interfaces/entities/doctor.interface';
+import { IReferrer } from '@/interfaces/entities/referrer.interface';
+import { IService } from '@/interfaces/entities/service.interface';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 interface IDictionaryState {
@@ -19,6 +22,9 @@ interface IDictionaryState {
   species: ISpecies[];
   breeds: IBreed[];
   clients: IClient[];
+  doctors: IDoctor[];
+  referrers: IReferrer[];
+  services: IService[];
   isLoading: boolean;
 }
 
@@ -31,6 +37,9 @@ const initialState: IDictionaryState = {
   species: [],
   breeds: [],
   clients: [],
+  doctors: [],
+  referrers: [],
+  services: [],
   isLoading: false,
 };
 
@@ -111,6 +120,36 @@ export const getClients = createAsyncThunk<IClient[], undefined, { rejectValue: 
     if (res.success && res.payload) return res.payload;
     if (!res.success && res.error) return rejectWithValue(res.error);
     return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Unable to load clients dictionary' });
+  },
+);
+
+export const getDoctors = createAsyncThunk<IDoctor[], undefined, { rejectValue: IApiError }>(
+  'dictionaries/getDoctors',
+  async (_, { rejectWithValue }) => {
+    const res = await vetlabApi.getDoctors();
+    if (res.success && res.payload) return res.payload;
+    if (!res.success && res.error) return rejectWithValue(res.error);
+    return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка получения справочника врачей' });
+  },
+);
+
+export const getReferrers = createAsyncThunk<IReferrer[], undefined, { rejectValue: IApiError }>(
+  'dictionaries/getReferrers',
+  async (_, { rejectWithValue }) => {
+    const res = await vetlabApi.getReferrers();
+    if (res.success && res.payload) return res.payload;
+    if (!res.success && res.error) return rejectWithValue(res.error);
+    return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка получения справочника направителей' });
+  },
+);
+
+export const getServices = createAsyncThunk<IService[], undefined, { rejectValue: IApiError }>(
+  'dictionaries/getServices',
+  async (_, { rejectWithValue }) => {
+    const res = await vetlabApi.getServices();
+    if (res.success && res.payload) return res.payload;
+    if (!res.success && res.error) return rejectWithValue(res.error);
+    return rejectWithValue({ code: 'UNKNOWN_ERROR', message: 'Ошибка получения справочника услуг' });
   },
 );
 
@@ -201,6 +240,15 @@ export const dictionarySlice = createSlice({
       })
       .addCase(getClients.rejected, (state) => {
         state.isLoading = false;
+      })
+      .addCase(getDoctors.fulfilled, (state, action) => {
+        state.doctors = action.payload;
+      })
+      .addCase(getReferrers.fulfilled, (state, action) => {
+        state.referrers = action.payload;
+      })
+      .addCase(getServices.fulfilled, (state, action) => {
+        state.services = action.payload;
       });
   },
 });

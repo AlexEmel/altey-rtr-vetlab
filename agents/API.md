@@ -283,7 +283,7 @@ The owner-create example returns `id`, while owner search and detail responses u
 
 ### `GET /orders`
 
-Protected. Returns orders created in the remote VetLab cabinet. The optional filters are `dateFrom`, `dateTo`, `barcode`, `sampleNumber`, `nickname`, `speciesId`, `breedId`, `ownerLastName`, `clientId`, `status`, `isPathology`, `isDefective`, `limit`, and `offset`.
+Protected. Returns orders created in the remote VetLab cabinet. The optional filters are `dateFrom`, `dateTo`, `barcode`, `sampleNumber`, `nickname`, `speciesId`, `breedId`, `ownerLastName`, `clientId`, `status`, `limit`, and `offset`.
 
 ```ts
 interface IOrderSample {
@@ -299,7 +299,7 @@ interface IOrderSample {
 interface IOrderDetail {
   _id: string;
   datetime: string;
-  status: EUrkOrderStatus;
+  status: EOrderStatus;
   barcode: string;
   pet: IPet;
   owner: IOwner;
@@ -309,18 +309,18 @@ interface IOrderDetail {
   doctor: string;
   clientName: string;
   referrerId: string;
-  paymentType: string;
 }
 
 interface IOrderInput {
   petId: string;
   clientId: string;
   services: string[];
-  referrerId: string;
-  doctorId: string;
-  paymentType: string;
+  referrerId?: string;
+  doctorId?: string;
 }
 ```
+
+`referrerId` and `doctorId` are optional when creating or editing an order.
 
 | Method and path | Request / response |
 | --- | --- |
@@ -346,7 +346,7 @@ enum ELisOrderStatus {
   DONE = 'DONE',
 }
 
-enum EUrkOrderStatus {
+enum EOrderStatus {
   CREATED = 'CREATED',
   ACCEPTED = 'ACCEPTED',
 }

@@ -58,6 +58,31 @@
   background-color: var(--color-accent) !important;
 }
 
+// Tree checkboxes
+.ant-tree-checkbox-checked .ant-tree-checkbox-inner {
+  background-color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+}
+
+.ant-tree-checkbox-wrapper:hover .ant-tree-checkbox-inner,
+.ant-tree-checkbox:hover .ant-tree-checkbox-inner,
+.ant-tree-checkbox-input:focus + .ant-tree-checkbox-inner {
+  border-color: var(--color-accent) !important;
+}
+
+.ant-tree-checkbox-indeterminate .ant-tree-checkbox-inner::after {
+  background-color: var(--color-accent) !important;
+}
+
+// Switch
+.ant-switch.ant-switch-checked {
+  background-color: var(--color-accent) !important;
+}
+
+.ant-switch.ant-switch-checked:hover:not(.ant-switch-disabled) {
+  background-color: var(--color-accent) !important;
+}
+
 // tooltip
 .ant-tooltip-inner {
   color: var(--color-text) !important;

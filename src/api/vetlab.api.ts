@@ -2,6 +2,7 @@ import { IApiRes } from '@/interfaces/app/api.interface';
 import { IBreed } from '@/interfaces/entities/breed.interface';
 import { IClient } from '@/interfaces/entities/client.interface';
 import { IDynamics } from '@/interfaces/entities/dynamics.interface';
+import { IDoctor } from '@/interfaces/entities/doctor.interface';
 import {
   IArchiveOrderPreview,
   IArchiveQueryParams,
@@ -17,6 +18,8 @@ import {
   IPetQueryParams,
 } from '@/interfaces/entities/order.interface';
 import { IOrderResults } from '@/interfaces/entities/result.interface';
+import { IReferrer } from '@/interfaces/entities/referrer.interface';
+import { IService } from '@/interfaces/entities/service.interface';
 import { ISpecies } from '@/interfaces/entities/species.interface';
 import { handleApiRes } from '@/utils/handleApiRes.util';
 import { AxiosError, AxiosInstance } from 'axios';
@@ -41,6 +44,18 @@ export class VetlabApi {
 
   public async getClients(): Promise<IApiRes<IClient[]>> {
     return handleApiRes<IClient[]>(this.api.get('/dictionaries/clients'));
+  }
+
+  public async getReferrers(): Promise<IApiRes<IReferrer[]>> {
+    return handleApiRes<IReferrer[]>(this.api.get('/dictionaries/referrers'));
+  }
+
+  public async getDoctors(): Promise<IApiRes<IDoctor[]>> {
+    return handleApiRes<IDoctor[]>(this.api.get('/dictionaries/doctors'));
+  }
+
+  public async getServices(): Promise<IApiRes<IService[]>> {
+    return handleApiRes<IService[]>(this.api.get('/dictionaries/services'));
   }
 
   public async getArchive(query?: IArchiveQueryParams): Promise<IApiRes<IArchiveOrderPreview[]>> {

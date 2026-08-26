@@ -11,6 +11,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { RouteWatcher } from './RouteWatcher';
 import { ProtectedRouter } from './ProtectedRouter';
 import QuotasPage from '@/components/pages/Quotas/QuotasPage';
+import { OrdersPage } from '@/components/pages/Orders/OrdersPage';
 
 export const AppRouter = (): JSX.Element => {
   return (
@@ -20,6 +21,7 @@ export const AppRouter = (): JSX.Element => {
           <Route element={<ProtectedRouter />}>
             <Route path="/" index element={<Navigate to={'/archive'} />} />
             <Route path="/archive" element={<ArchivePage />} />
+            <Route path="/orders" element={<OrdersPage />} />
             <Route path="/archive/pdf/:id" element={<PdfPage />} />
             <Route path="/archive/results/:id" element={<ResultsPage />} />
             <Route path="/dynamics" element={<DynamicsPage />} />

@@ -11,6 +11,9 @@ import {
   getSpecies,
   getBreeds,
   getClients,
+  getDoctors,
+  getReferrers,
+  getServices,
 } from '@/features/dictionary.slice';
 import { getArchive } from '@/features/archive.slice';
 import { getDynamics } from '@/features/dynamics.slice';
@@ -23,6 +26,7 @@ import {
   getAppointments,
   getTreatmentRoomsQuotas,
 } from '@/features/appointments.slice';
+import { getOrders } from '@/features/orders.slice';
 
 export const listenerMiddleware = createListenerMiddleware();
 export const startAppListening = listenerMiddleware.startListening;
@@ -42,6 +46,9 @@ startAppListening({
     api.dispatch(getSpecies());
     api.dispatch(getBreeds());
     api.dispatch(getClients());
+    api.dispatch(getDoctors());
+    api.dispatch(getReferrers());
+    api.dispatch(getServices());
   },
 });
 
@@ -77,6 +84,9 @@ startAppListening({
     getSpecies.rejected,
     getBreeds.rejected,
     getClients.rejected,
+    getDoctors.rejected,
+    getReferrers.rejected,
+    getServices.rejected,
   ),
   effect: async (action) => {
     notify('error', getErrorMessage(action, 'Ошибка получения справочников'));
@@ -88,6 +98,13 @@ startAppListening({
   actionCreator: getArchive.rejected,
   effect: async (action) => {
     notify('error', getErrorMessage(action, 'Ошибка получения архива заказов'));
+  },
+});
+
+startAppListening({
+  actionCreator: getOrders.rejected,
+  effect: async (action) => {
+    notify('error', getErrorMessage(action, 'Ошибка получения заказов'));
   },
 });
 

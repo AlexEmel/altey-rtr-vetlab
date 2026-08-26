@@ -1,0 +1,97 @@
+@use '../../../styles/mixins' as mixins;
+
+.modalBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+  gap: 1rem;
+  height: min(680px, 68vh);
+  overflow-y: auto;
+  padding: 0.25rem;
+  align-items: start;
+}
+
+.section {
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background-color: var(--color-bg-surface);
+
+  h3 {
+    margin: 0 0 0.75rem;
+    color: var(--color-text-strong);
+  }
+}
+
+.servicesSection {
+  @include mixins.noScrollBar;
+
+  grid-row: span 2;
+  align-self: stretch;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.searchField {
+  width: 230px;
+  font-size: 14px;
+}
+
+.entitySelect {
+  min-width: 250px;
+  flex: 1;
+}
+
+.inlineForm {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background-color: var(--color-bg-soft);
+  border-radius: 8px;
+  align-items: end;
+
+  > * {
+    min-width: 0;
+  }
+
+  :global(.ant-input),
+  :global(.ant-input-affix-wrapper),
+  :global(.ant-picker),
+  :global(.ant-select) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  > button {
+    width: max-content;
+    max-width: 100%;
+    justify-self: start;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  .modalBody {
+    grid-template-columns: 1fr;
+    height: auto;
+    max-height: 68vh;
+  }
+
+  .servicesSection {
+    grid-row: auto;
+    height: 320px;
+  }
+
+  .inlineForm {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .inlineForm {
+    grid-template-columns: 1fr;
+  }
+}
