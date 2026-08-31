@@ -277,7 +277,6 @@ interface IOwnerRecord extends IOwnerInput {
 | `POST /owners` | `IOwnerInput` -> `IApiRes<IOwnerRecord>`; `400` on validation failure |
 | `PATCH /owners/{id}` | `IOwnerInput` -> `IApiRes<IOwnerRecord>`; `400` on validation failure |
 
-The owner-create example returns `id`, while owner search and detail responses use `_id`. Keep this discrepancy visible until the backend contract is confirmed; do not silently normalize it in API types.
 
 ## VetLab Orders
 
@@ -303,9 +302,7 @@ interface IOrderDetail {
   barcode: string;
   pet: IPet;
   owner: IOwner;
-  analysis: string[];
   services: ILisService[];
-  samples: IOrderSample[];
   doctor: string;
   clientName: string;
   referrerId: string;

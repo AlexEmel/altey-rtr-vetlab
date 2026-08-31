@@ -144,9 +144,7 @@ export interface IOrder {
   doctorId?: string;
   pet: IPet;
   owner: IOwner;
-  analysis: string[];
   services: ILisService[];
-  samples: IOrderSample[];
   doctor: string;
   clientName: string;
   referrerId: string;

@@ -14,6 +14,7 @@ import {
   getServices,
 } from '@/features/dictionary.slice';
 import {
+  EOrderStatus,
   ESex,
   IOrder,
   IOrderInput,
@@ -223,6 +224,7 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
       width={1100}
       title={order ? 'Редактирование заказа' : 'Новый заказ'}
       okText={order ? 'Сохранить' : 'Создать заказ'}
+      okButtonProps={{ disabled: !!order && order.status === EOrderStatus.ACCEPTED }}
       cancelText="Отмена"
       confirmLoading={isLoading}
       onOk={handleSubmit}

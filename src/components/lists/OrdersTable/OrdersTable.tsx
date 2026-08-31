@@ -1,11 +1,10 @@
 import { ORDER_STATUS_LABELS } from '@/common/orders.const';
 import { AppTag } from '@/components/ui/AppTag/AppTag';
 import { ETagColor } from '@/components/ui/AppTag/AppTag.types';
-import { TruncatedText } from '@/components/ui/TruncatedText/TruncatedText';
 import { setCurrentPage } from '@/features/orders.slice';
-import { EOrderStatus, IOrder, IOwner } from '@/interfaces/entities/order.interface';
+import { EOrderStatus, ESex, IOrder, IOwner } from '@/interfaces/entities/order.interface';
 import { useAppDispatch, useAppSelector } from '@/store/store';
-import { concatText, formatDatetime } from '@/utils/common.util';
+import { formatDatetime } from '@/utils/common.util';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { Button, Popconfirm, Space, Table, Tooltip } from 'antd';
 import Column from 'antd/es/table/Column';
@@ -53,69 +52,84 @@ export const OrdersTable = ({ onEdit, onDelete }: IOrdersTableProps): JSX.Elemen
         current: currentPage || 1,
         onChange: (page) => dispatch(setCurrentPage(page)),
       }}
-      scroll={{ x: 1650 }}
       size="middle"
     >
       <Column
         title="Статус"
         key="status"
-        width={120}
+        width={105}
         render={(order: IOrder) => (
           <AppTag text={ORDER_STATUS_LABELS[order.status]} color={getStatusColor(order.status)} />
         )}
       />
-      <Column title="Штрихкод" key="barcode" dataIndex="barcode" width={100} />
+      <Column title="Штрихкод" key="barcode" dataIndex="barcode" width={90} />
       <Column
         title="Дата заказа"
         key="datetime"
         dataIndex="datetime"
-        width={165}
+        width={155}
         render={formatDatetime}
         sorter={(left: IOrder, right: IOrder) =>
           new Date(left.datetime).getTime() - new Date(right.datetime).getTime()
         }
       />
-      <Column title="Владелец" key="owner" width={220} render={(order: IOrder) => getOwnerName(order.owner)} />
-      <Column title="Кличка" key="nickname" width={150} render={(order: IOrder) => order.pet?.nickname ?? 'Не указана'} />
       <Column
-        title="Биологический вид"
-        key="species"
-        width={150}
-        render={(order: IOrder) =>
-          order.pet ? speciesMap.get(order.pet.speciesId) ?? 'Не указан' : 'Не указан'
-        }
+        title="Владелец"
+        key="owner"
+        width={260}
+        render={(order: IOrder) => getOwnerName(order.owner)}
       />
+      <Column title="Телефон" key="phone" dataIndex={['owner', 'phone']} width={200} />
       <Column
-        title="Порода"
-        key="breed"
-        width={180}
-        render={(order: IOrder) =>
-          order.pet?.breedId ? breedMap.get(order.pet.breedId) ?? 'Не указана' : 'Не указана'
-        }
-      />
-      <Column
-        title="Исследования"
-        key="analysis"
-        width={300}
+        title="Питомец"
+        key="pet"
+        width={240}
         render={(order: IOrder) => {
-          const analysis = order.analysis ?? [];
-          return <TruncatedText text={concatText(analysis)} tooltip={analysis.length > 2} />;
+          if (!order.pet) return 'Не указан';
+          const breedName = order.pet.breedId ? breedMap.get(order.pet.breedId) : undefined;
+          const breedOrSpecies = breedName ?? speciesMap.get(order.pet.speciesId);
+
+          return (
+            <>
+              <span className={styles.petNickname}>{order.pet.nickname}</span>
+              {`, ${(breedOrSpecies ?? 'не указан').toLocaleLowerCase('ru-RU')}, ${
+                order.pet.sex === ESex.MALE ? 'самец' : 'самка'
+              }`}
+            </>
+          );
         }}
       />
-      <Column title="Врач" key="doctor" dataIndex="doctor" width={200} />
-      <Column title="Контрагент" key="clientName" dataIndex="clientName" width={220} />
+      <Column
+        title="Возраст"
+        key="age"
+        width={100}
+        render={(order: IOrder) => order.pet?.age || 'Не указан'}
+      />
+      <Column title="Врач" key="doctor" dataIndex="doctor" width={170} />
+      <Column title="Контрагент" key="clientName" dataIndex="clientName" width={190} />
       <Column
         key="actions"
-        width={96}
-        fixed="right"
+        width={80}
         render={(order: IOrder) => (
           <Space
             size={0}
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
           >
-            <Tooltip title="Редактировать заказ">
-              <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(order)} />
+            <Tooltip
+              mouseEnterDelay={0.4}
+              title={
+                order.status === EOrderStatus.ACCEPTED
+                  ? 'Принятый заказ нельзя редактировать'
+                  : 'Редактировать заказ'
+              }
+            >
+              <Button
+                type="text"
+                disabled={order.status === EOrderStatus.ACCEPTED}
+                icon={<EditOutlined />}
+                onClick={() => onEdit(order)}
+              />
             </Tooltip>
             <Popconfirm
               disabled={order.status === EOrderStatus.ACCEPTED}
@@ -126,9 +140,19 @@ export const OrdersTable = ({ onEdit, onDelete }: IOrdersTableProps): JSX.Elemen
               okButtonProps={{ danger: true }}
               onConfirm={() => onDelete(order)}
             >
-              <Tooltip title={order.status === EOrderStatus.ACCEPTED ? 'Принятый заказ нельзя удалить' : 'Удалить заказ'}>
+              <Tooltip
+                mouseEnterDelay={0.4}
+                title={
+                  order.status === EOrderStatus.ACCEPTED ? 'Принятый заказ нельзя удалить' : 'Удалить заказ'
+                }
+              >
                 <span>
-                <Button type="text" danger disabled={order.status === EOrderStatus.ACCEPTED} icon={<DeleteOutlined />} />
+                  <Button
+                    type="text"
+                    danger
+                    disabled={order.status === EOrderStatus.ACCEPTED}
+                    icon={<DeleteOutlined />}
+                  />
                 </span>
               </Tooltip>
             </Popconfirm>

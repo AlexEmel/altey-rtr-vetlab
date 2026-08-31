@@ -79,7 +79,7 @@ export const AppSider = (): JSX.Element => {
 
   return (
     <Flex className={getSidebarStyles()}>
-      <Flex vertical flex={1} gap={20} className={styles.navigation}>
+      <Flex vertical flex={1} className={styles.navigation}>
         {navlinks.map((link, i) => {
           if (link.show) {
             return <SiderLink key={i} link={link} />;
