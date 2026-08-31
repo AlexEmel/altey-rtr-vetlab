@@ -5,28 +5,31 @@ import {
   createPet,
   findOwners,
   findPets,
+  resetFoundOwners,
+  resetFoundPets,
   setNewOrder,
   updateOrder,
 } from '@/features/orders.slice';
-import {
-  getDoctors,
-  getReferrers,
-  getServices,
-} from '@/features/dictionary.slice';
+import { getDoctors, getReferrers, getServices } from '@/features/dictionary.slice';
 import {
   EOrderStatus,
   ESex,
   IOrder,
   IOrderInput,
   IOwnerInput,
+  IOwnerRecord,
   IPetInput,
 } from '@/interfaces/entities/order.interface';
 import { useAppDispatch, useAppSelector } from '@/store/store';
-import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, DatePicker, Flex, Form, Input, Modal, Select, Switch, Tree } from 'antd';
+import { maskRussianPhone, normalizeRussianPhone } from '@/utils/common.util';
+import palmIcon from '@/assets/icons/palm.png';
+import pawIcon from '@/assets/icons/paw.png';
+import { PlusOutlined } from '@ant-design/icons';
+import { Button, DatePicker, Form, Input, Modal, Radio, Select, Space, Switch, Tree } from 'antd';
 import type { DataNode } from 'antd/es/tree';
-import type { Dayjs } from 'dayjs';
-import { Key, useEffect, useMemo, useState } from 'react';
+import dayjs, { Dayjs } from 'dayjs';
+import { Key, ReactNode, useEffect, useMemo, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import styles from './OrderModal.module.scss';
 
 interface IOrderModalProps {
@@ -41,16 +44,71 @@ interface IOrderFields {
   doctorId?: string;
 }
 
-interface IOwnerFields extends Omit<IOwnerInput, 'bornDate'> {
+interface IOwnerFields extends Omit<IOwnerInput, 'bornDate' | 'phone'> {
   bornDate?: Dayjs | null;
+  phone: string;
 }
 
 interface IPetFields extends Omit<IPetInput, 'bornDate' | 'ownerId' | 'owner'> {
   bornDate?: Dayjs | null;
 }
 
+type TOwnerSearchMode = 'lastName' | 'phone';
+
+interface IOwnerOption {
+  value: string;
+  label: ReactNode;
+  plainLabel: string;
+}
+
+interface IPetOption {
+  value: string;
+  label: ReactNode;
+  plainLabel: string;
+}
+
 const ownerLabel = (owner: { lastName: string; firstName: string; middleName?: string | null }): string =>
   [owner.lastName, owner.firstName, owner.middleName].filter(Boolean).join(' ');
+
+const getOwnerMeta = (owner: Pick<IOwnerRecord, 'bornDate' | 'phone'>): string => {
+  const parts: string[] = [];
+
+  if (owner.bornDate) parts.push(dayjs(owner.bornDate).format('DD.MM.YYYY'));
+  if (owner.phone) parts.push(maskRussianPhone(owner.phone));
+
+  return parts.join(' • ');
+};
+
+const createOwnerOption = (owner: IOwnerRecord): IOwnerOption => {
+  const meta = getOwnerMeta(owner);
+
+  return {
+    value: owner._id,
+    plainLabel: ownerLabel(owner),
+    label: (
+      <div className={styles.ownerOption}>
+        <span className={styles.ownerOptionName}>{ownerLabel(owner)}</span>
+        {meta && <span className={styles.ownerOptionMeta}>{meta}</span>}
+      </div>
+    ),
+  };
+};
+
+const petSexLabel: Record<ESex, string> = {
+  [ESex.MALE]: 'Самец',
+  [ESex.FEMALE]: 'Самка',
+};
+
+const orderOwnerToRecord = (orderOwner: IOrder['owner']): IOwnerRecord => ({
+  _id: orderOwner._id,
+  lastName: orderOwner.lastName,
+  firstName: orderOwner.firstName,
+  middleName: orderOwner.middleName,
+  bornDate: orderOwner.bornDate ?? '',
+  email: orderOwner.email ?? '',
+  phone: orderOwner.phone ?? '',
+  snils: orderOwner.snils ?? '',
+});
 
 export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -62,6 +120,7 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
   const [ownerForm] = Form.useForm<IOwnerFields>();
   const [petForm] = Form.useForm<IPetFields>();
   const selectedSpeciesId = Form.useWatch('speciesId', petForm);
+  const [ownerSearchMode, setOwnerSearchMode] = useState<TOwnerSearchMode>('lastName');
   const [ownerSearch, setOwnerSearch] = useState('');
   const [petSearch, setPetSearch] = useState('');
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>();
@@ -69,11 +128,13 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
   const [checkedServiceIds, setCheckedServiceIds] = useState<string[]>([]);
   const [showOwnerForm, setShowOwnerForm] = useState(false);
   const [showPetForm, setShowPetForm] = useState(false);
-  const [createdOwner, setCreatedOwner] = useState<{ value: string; label: string }>();
+  const [createdOwner, setCreatedOwner] = useState<IOwnerRecord>();
+  const [debouncedOwnerSearch] = useDebounce(ownerSearch.trim(), 400);
 
   const serviceIdSet = useMemo(() => new Set(services.map((service) => service._id)), [services]);
   const serviceTree = useMemo<DataNode[]>(() => {
     const groups = new Map<string, DataNode>();
+
     services.forEach((service) => {
       const groupKey = `group-${service.groupId}`;
       const group = groups.get(groupKey) ?? {
@@ -81,31 +142,61 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
         title: service.groupName,
         children: [],
       };
+
       group.children?.push({
         key: service._id,
-        title: `${service.code} — ${service.name} (${service.price.toLocaleString('ru-RU')} ₽)`,
+        title: `${service.code} - ${service.name} (${service.price.toLocaleString('ru-RU')} ₽)`,
       });
       groups.set(groupKey, group);
     });
+
     return Array.from(groups.values());
   }, [services]);
 
-  const ownerOptions = useMemo(() => {
-    const options = foundOwners.map((owner) => ({ value: owner._id, label: ownerLabel(owner) }));
-    if (createdOwner && !options.some((option) => option.value === createdOwner.value)) options.push(createdOwner);
-    if (order?.owner?._id && !options.some((option) => option.value === order.owner._id)) {
-      options.push({ value: order.owner._id, label: ownerLabel(order.owner) });
+  const ownerOptions = useMemo<IOwnerOption[]>(() => {
+    const options = foundOwners.map(createOwnerOption);
+
+    if (createdOwner && !options.some((option) => option.value === createdOwner._id)) {
+      options.push(createOwnerOption(createdOwner));
     }
+
+    if (order?.owner?._id && !options.some((option) => option.value === order.owner._id)) {
+      options.push(createOwnerOption(orderOwnerToRecord(order.owner)));
+    }
+
     return options;
   }, [createdOwner, foundOwners, order]);
 
-  const petOptions = useMemo(() => {
-    const options = foundPets.map((pet) => ({ value: pet._id, label: pet.nickname }));
+  const petOptions = useMemo<IPetOption[]>(() => {
+    const createPetOption = (pet: IOrder['pet']): IPetOption => {
+      const breed = pet.breedId ? breeds.find((item) => item._id === pet.breedId)?.name : undefined;
+      const speciesName = species.find((item) => item._id === pet.speciesId)?.name;
+      const speciesOrBreed = breed ?? speciesName;
+      const meta = [speciesOrBreed, petSexLabel[pet.sex], pet.age].filter(Boolean).join(' • ');
+
+      return {
+        value: pet._id,
+        plainLabel: pet.nickname,
+        label: (
+          <div className={styles.petOption}>
+            <span className={styles.petOptionName}>{pet.nickname}</span>
+            {meta && <span className={styles.petOptionMeta}>{meta}</span>}
+          </div>
+        ),
+      };
+    };
+
+    const normalizedSearch = petSearch.trim().toLocaleLowerCase();
+    const options = foundPets
+      .filter((pet) => pet.nickname.toLocaleLowerCase().includes(normalizedSearch))
+      .map(createPetOption);
+
     if (order?.pet?._id && !options.some((option) => option.value === order.pet._id)) {
-      options.push({ value: order.pet._id, label: order.pet.nickname });
+      options.push(createPetOption(order.pet));
     }
+
     return options;
-  }, [foundPets, order]);
+  }, [breeds, foundPets, order, petSearch, species]);
 
   const breedOptions = useMemo(() => {
     return breeds
@@ -121,17 +212,62 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
 
     const clientId = order?.clientId ?? clients.find((client) => client.name === order?.clientName)?._id;
     const doctorId = order?.doctorId ?? doctors.find((doctor) => doctor.name === order?.doctor)?._id;
+
     orderForm.setFieldsValue({ clientId, doctorId, referrerId: order?.referrerId });
     setSelectedOwnerId(order?.owner?._id);
     setSelectedPetId(order?.pet?._id);
     setCheckedServiceIds(order?.services?.map((service) => service._id) ?? []);
   }, [clients, dispatch, doctors, order, orderForm, open, referrers.length, services.length]);
 
+  useEffect(() => {
+    if (!open || ownerSearchMode !== 'lastName') return;
+
+    if (!debouncedOwnerSearch) {
+      dispatch(resetFoundOwners());
+      return;
+    }
+
+    if (debouncedOwnerSearch.length < 2) {
+      dispatch(resetFoundOwners());
+      return;
+    }
+
+    dispatch(findOwners({ lastName: debouncedOwnerSearch }));
+  }, [debouncedOwnerSearch, dispatch, open, ownerSearchMode]);
+
+  useEffect(() => {
+    if (!open || ownerSearchMode !== 'phone') return;
+
+    const normalizedPhone = normalizeRussianPhone(ownerSearch);
+
+    if (!normalizedPhone) {
+      dispatch(resetFoundOwners());
+      return;
+    }
+
+    if (/^\+7\d{10}$/.test(normalizedPhone)) {
+      dispatch(findOwners({ phone: normalizedPhone }));
+      return;
+    }
+
+    dispatch(resetFoundOwners());
+  }, [dispatch, open, ownerSearch, ownerSearchMode]);
+
+  useEffect(() => {
+    if (!open || !selectedOwnerId) {
+      dispatch(resetFoundPets());
+      return;
+    }
+
+    dispatch(findPets({ ownerId: selectedOwnerId }));
+  }, [dispatch, open, selectedOwnerId]);
+
   const handleClose = (): void => {
     orderForm.resetFields();
     ownerForm.resetFields();
     petForm.resetFields();
     setOwnerSearch('');
+    setOwnerSearchMode('lastName');
     setPetSearch('');
     setSelectedOwnerId(undefined);
     setSelectedPetId(undefined);
@@ -139,19 +275,9 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
     setShowOwnerForm(false);
     setShowPetForm(false);
     setCreatedOwner(undefined);
+    dispatch(resetFoundOwners());
+    dispatch(resetFoundPets());
     onClose();
-  };
-
-  const handleOwnerSearch = (): void => {
-    const lastName = ownerSearch.trim();
-    if (!lastName) return notify('warning', 'Введите фамилию владельца');
-    dispatch(findOwners({ lastName }));
-  };
-
-  const handlePetSearch = (): void => {
-    const nickname = petSearch.trim();
-    if (!nickname && !selectedOwnerId) return notify('warning', 'Введите кличку или выберите владельца');
-    dispatch(findPets(nickname ? { nickname, ownerId: selectedOwnerId } : { ownerId: selectedOwnerId! }));
   };
 
   const handleOwnerCreate = async (): Promise<void> => {
@@ -161,15 +287,19 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
         lastName: values.lastName?.trim() ?? '',
         firstName: values.firstName?.trim() ?? '',
         middleName: values.middleName?.trim() ?? '',
-        phone: values.phone?.trim() ?? '',
+        phone: normalizeRussianPhone(values.phone),
         email: values.email?.trim() ?? '',
         bornDate: values.bornDate?.toISOString() ?? '',
         snils: values.snils?.trim() ?? '',
       };
       const created = await dispatch(createOwner(payload)).unwrap();
       const id = created._id ?? created.id;
-      setCreatedOwner({ value: id, label: ownerLabel(created) });
+      const createdRecord: IOwnerRecord = { ...created, _id: id };
+
+      setCreatedOwner(createdRecord);
       setSelectedOwnerId(id);
+      setOwnerSearch('');
+      setOwnerSearchMode('lastName');
       setShowOwnerForm(false);
     } catch {
       // Rejected order thunks are reported by the listener middleware.
@@ -178,6 +308,7 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
 
   const handlePetCreate = async (): Promise<void> => {
     if (!selectedOwnerId) return notify('warning', 'Сначала выберите или создайте владельца');
+
     try {
       const values = await petForm.validateFields();
       const payload: IPetInput = {
@@ -206,17 +337,38 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
   const handleSubmit = async (): Promise<void> => {
     if (!selectedPetId) return notify('warning', 'Выберите или создайте питомца');
     if (!checkedServiceIds.length) return notify('warning', 'Выберите хотя бы одну услугу');
+
     try {
       const values = await orderForm.validateFields();
       const payload: IOrderInput = { ...values, petId: selectedPetId, services: checkedServiceIds };
       dispatch(setNewOrder(payload));
+
       if (order) await dispatch(updateOrder({ id: order._id, payload })).unwrap();
       else await dispatch(createOrder(payload)).unwrap();
+
       handleClose();
     } catch {
       // Rejected order thunks are reported by the listener middleware.
     }
   };
+
+  const handleOwnerSearchInput = (value: string): void => {
+    setOwnerSearch(ownerSearchMode === 'phone' ? maskRussianPhone(value) : value);
+  };
+
+  const ownerSearchPlaceholder =
+    ownerSearchMode === 'lastName' ? 'Поиск владельца по фамилии' : '+7 (999) 999-99-99';
+
+  const ownerNotFoundContent =
+    ownerSearchMode === 'lastName'
+      ? ownerSearch.trim().length < 2
+        ? 'Введите минимум 2 символа'
+        : 'Ничего не найдено'
+      : normalizeRussianPhone(ownerSearch).length < 12
+        ? 'Введите номер полностью'
+        : 'Ничего не найдено';
+
+  const petNotFoundContent = selectedOwnerId ? 'Ничего не найдено' : 'Сначала выберите владельца';
 
   return (
     <Modal
@@ -233,68 +385,143 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
     >
       <div className={styles.modalBody}>
         <section className={styles.section}>
-          <h3>Владелец и питомец</h3>
-          <Flex gap={8} align="flex-end" wrap="wrap">
-            <Flex vertical className={styles.searchField}>
-              <span>Поиск владельца по фамилии</span>
-              <Input value={ownerSearch} onChange={(event) => setOwnerSearch(event.currentTarget.value)} />
-            </Flex>
-            <Button icon={<SearchOutlined />} onClick={handleOwnerSearch}>Найти</Button>
-            <Button icon={<PlusOutlined />} onClick={() => setShowOwnerForm((value) => !value)}>Новый владелец</Button>
-            <Select
-              className={styles.entitySelect}
-              value={selectedOwnerId}
-              options={ownerOptions}
-              placeholder="Выберите владельца"
-              onChange={(value) => {
-                setSelectedOwnerId(value);
-                setSelectedPetId(undefined);
-              }}
-              showSearch
-              optionFilterProp="label"
-            />
-          </Flex>
+          <div className={styles.sectionHeader}>
+            <h3><img src={palmIcon} alt="" aria-hidden="true" />Владелец</h3>
+            <Button icon={<PlusOutlined />} onClick={() => setShowOwnerForm((value) => !value)}>
+              Новый владелец
+            </Button>
+          </div>
+          <Space.Compact className={styles.ownerSearchControls} block>
+              <Radio.Group
+                value={ownerSearchMode}
+                onChange={(event) => {
+                  setOwnerSearchMode(event.target.value);
+                  setOwnerSearch('');
+                  dispatch(resetFoundOwners());
+                }}
+                optionType="button"
+                buttonStyle="solid"
+              >
+                <Radio.Button value="lastName">По фамилии</Radio.Button>
+                <Radio.Button value="phone">По телефону</Radio.Button>
+              </Radio.Group>
+              <Select
+                className={styles.ownerSearchSelect}
+                value={selectedOwnerId}
+                options={ownerOptions}
+                placeholder={ownerSearchPlaceholder}
+                onChange={(value) => {
+                  setSelectedOwnerId(value);
+                  setSelectedPetId(undefined);
+                  setPetSearch('');
+                }}
+                onSearch={handleOwnerSearchInput}
+                searchValue={ownerSearch}
+                showSearch
+                filterOption={false}
+                optionLabelProp="plainLabel"
+                notFoundContent={ownerNotFoundContent}
+                allowClear
+              />
+          </Space.Compact>
           {showOwnerForm && (
             <Form form={ownerForm} layout="vertical" className={styles.inlineForm}>
-              <Form.Item name="lastName" label="Фамилия" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item name="firstName" label="Имя" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item name="middleName" label="Отчество"><Input /></Form.Item>
-              <Form.Item name="phone" label="Телефон" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item name="email" label="Email"><Input /></Form.Item>
-              <Form.Item name="bornDate" label="Дата рождения"><DatePicker /></Form.Item>
-              <Form.Item name="snils" label="СНИЛС"><Input /></Form.Item>
-              <Button type="primary" onClick={handleOwnerCreate}>Создать владельца</Button>
+              <Form.Item name="lastName" label="Фамилия" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item name="firstName" label="Имя" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item name="middleName" label="Отчество">
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="phone"
+                label="Телефон"
+                rules={[
+                  { required: true },
+                  { pattern: /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/, message: 'Используйте формат +7 (999) 999-99-99' },
+                ]}
+                getValueFromEvent={(event) => maskRussianPhone(event.currentTarget.value)}
+              >
+                <Input placeholder="+7 (999) 999-99-99" />
+              </Form.Item>
+              <Form.Item name="email" label="Email">
+                <Input />
+              </Form.Item>
+              <Form.Item name="bornDate" label="Дата рождения">
+                <DatePicker />
+              </Form.Item>
+              <Form.Item name="snils" label="СНИЛС">
+                <Input />
+              </Form.Item>
+              <Button type="primary" onClick={handleOwnerCreate}>
+                Создать владельца
+              </Button>
             </Form>
           )}
-          <Flex gap={8} align="flex-end" wrap="wrap">
-            <Flex vertical className={styles.searchField}>
-              <span>Поиск питомца по кличке</span>
-              <Input value={petSearch} onChange={(event) => setPetSearch(event.currentTarget.value)} />
-            </Flex>
-            <Button icon={<SearchOutlined />} onClick={handlePetSearch}>Найти</Button>
-            <Button icon={<PlusOutlined />} onClick={() => setShowPetForm((value) => !value)}>Новый питомец</Button>
+          <div className={styles.petSection}>
+            <div className={styles.sectionHeader}>
+              <h3><img src={pawIcon} alt="" aria-hidden="true" />Питомец</h3>
+              <Button icon={<PlusOutlined />} onClick={() => setShowPetForm((value) => !value)}>
+                Новый питомец
+              </Button>
+            </div>
             <Select
-              className={styles.entitySelect}
+              className={styles.petSearchSelect}
               value={selectedPetId}
               options={petOptions}
-              placeholder="Выберите питомца"
+              placeholder="Поиск питомца по кличке"
               onChange={setSelectedPetId}
+              onSearch={setPetSearch}
+              searchValue={petSearch}
               showSearch
-              optionFilterProp="label"
+              filterOption={false}
+              optionLabelProp="plainLabel"
+              notFoundContent={petNotFoundContent}
+              disabled={!selectedOwnerId}
+              allowClear
             />
-          </Flex>
+          </div>
           {showPetForm && (
-            <Form form={petForm} layout="vertical" className={styles.inlineForm} initialValues={{ sex: ESex.MALE, isSterilized: false }}>
-              <Form.Item name="nickname" label="Кличка" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item name="speciesId" label="Вид" rules={[{ required: true }]}>
-                <Select options={species.map((item) => ({ value: item._id, label: item.name }))} onChange={() => petForm.setFieldValue('breedId', undefined)} />
+            <Form
+              form={petForm}
+              layout="vertical"
+              className={styles.inlineForm}
+              initialValues={{ sex: ESex.MALE, isSterilized: false }}
+            >
+              <Form.Item name="nickname" label="Кличка" rules={[{ required: true }]}>
+                <Input />
               </Form.Item>
-              <Form.Item name="breedId" label="Порода" rules={[{ required: true }]}><Select options={breedOptions} /></Form.Item>
-              <Form.Item name="sex" label="Пол" rules={[{ required: true }]}><Select options={[{ value: ESex.MALE, label: 'Самец' }, { value: ESex.FEMALE, label: 'Самка' }]} /></Form.Item>
-              <Form.Item name="bornDate" label="Дата рождения"><DatePicker /></Form.Item>
-              <Form.Item name="age" label="Возраст"><Input /></Form.Item>
-              <Form.Item name="isSterilized" label="Стерилизован" valuePropName="checked"><Switch /></Form.Item>
-              <Button type="primary" onClick={handlePetCreate}>Создать питомца</Button>
+              <Form.Item name="speciesId" label="Вид" rules={[{ required: true }]}>
+                <Select
+                  options={species.map((item) => ({ value: item._id, label: item.name }))}
+                  onChange={() => petForm.setFieldValue('breedId', undefined)}
+                />
+              </Form.Item>
+              <Form.Item name="breedId" label="Порода" rules={[{ required: true }]}>
+                <Select options={breedOptions} />
+              </Form.Item>
+              <Form.Item name="sex" label="Пол" rules={[{ required: true }]}>
+                <Select
+                  options={[
+                    { value: ESex.MALE, label: 'Самец' },
+                    { value: ESex.FEMALE, label: 'Самка' },
+                  ]}
+                />
+              </Form.Item>
+              <Form.Item name="bornDate" label="Дата рождения">
+                <DatePicker />
+              </Form.Item>
+              <Form.Item name="age" label="Возраст">
+                <Input />
+              </Form.Item>
+              <Form.Item name="isSterilized" label="Стерилизован" valuePropName="checked">
+                <Switch />
+              </Form.Item>
+              <Button type="primary" onClick={handlePetCreate}>
+                Создать питомца
+              </Button>
             </Form>
           )}
         </section>
@@ -307,14 +534,32 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
         <section className={styles.section}>
           <h3>Данные заказа</h3>
           <Form form={orderForm} layout="vertical">
-            <Form.Item name="clientId" label="Контрагент" rules={[{ required: true, message: 'Выберите контрагента' }]}>
-              <Select showSearch optionFilterProp="label" options={clients.map((item) => ({ value: item._id, label: item.name }))} />
+            <Form.Item
+              name="clientId"
+              label="Контрагент"
+              rules={[{ required: true, message: 'Выберите контрагента' }]}
+            >
+              <Select
+                showSearch
+                optionFilterProp="label"
+                options={clients.map((item) => ({ value: item._id, label: item.name }))}
+              />
             </Form.Item>
             <Form.Item name="referrerId" label="Направитель">
-              <Select allowClear showSearch optionFilterProp="label" options={referrers.map((item) => ({ value: item._id, label: item.name }))} />
+              <Select
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                options={referrers.map((item) => ({ value: item._id, label: item.name }))}
+              />
             </Form.Item>
             <Form.Item name="doctorId" label="Врач">
-              <Select allowClear showSearch optionFilterProp="label" options={doctors.map((item) => ({ value: item._id, label: item.name }))} />
+              <Select
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                options={doctors.map((item) => ({ value: item._id, label: item.name }))}
+              />
             </Form.Item>
           </Form>
         </section>
