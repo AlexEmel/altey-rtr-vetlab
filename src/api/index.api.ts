@@ -8,12 +8,14 @@ import { VetlabApi } from './vetlab.api';
 
 type AppStore = Store<TRootState>;
 
+const apiBaseUrl = window.__APP_CONFIG__?.API_URL || import.meta.env.VITE_API_URL;
+
 export const apiAxios = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl,
 });
 
 export const authAxios = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl,
 });
 
 let appStore: AppStore;
