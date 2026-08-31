@@ -39,6 +39,12 @@ export const OrdersTable = ({ onEdit, onDelete }: IOrdersTableProps): JSX.Elemen
       rowClassName={() => styles.row}
       onRow={(order) => ({
         onClick: () => onEdit(order),
+        onKeyDown: (event) => {
+          if (event.target !== event.currentTarget || !['Enter', ' '].includes(event.key)) return;
+          event.preventDefault();
+          onEdit(order);
+        },
+        tabIndex: 0,
       })}
       loading={isLoading}
       pagination={{
@@ -103,11 +109,16 @@ export const OrdersTable = ({ onEdit, onDelete }: IOrdersTableProps): JSX.Elemen
         width={96}
         fixed="right"
         render={(order: IOrder) => (
-          <Space size={0} onClick={(event) => event.stopPropagation()}>
+          <Space
+            size={0}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
             <Tooltip title="Редактировать заказ">
               <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(order)} />
             </Tooltip>
             <Popconfirm
+              disabled={order.status === EOrderStatus.ACCEPTED}
               title="Удалить заказ?"
               description="Это действие нельзя отменить."
               okText="Удалить"
@@ -115,8 +126,10 @@ export const OrdersTable = ({ onEdit, onDelete }: IOrdersTableProps): JSX.Elemen
               okButtonProps={{ danger: true }}
               onConfirm={() => onDelete(order)}
             >
-              <Tooltip title="Удалить заказ">
-                <Button type="text" danger icon={<DeleteOutlined />} />
+              <Tooltip title={order.status === EOrderStatus.ACCEPTED ? 'Принятый заказ нельзя удалить' : 'Удалить заказ'}>
+                <span>
+                <Button type="text" danger disabled={order.status === EOrderStatus.ACCEPTED} icon={<DeleteOutlined />} />
+                </span>
               </Tooltip>
             </Popconfirm>
           </Space>

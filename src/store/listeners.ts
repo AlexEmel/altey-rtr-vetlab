@@ -26,7 +26,15 @@ import {
   getAppointments,
   getTreatmentRoomsQuotas,
 } from '@/features/appointments.slice';
-import { getOrders } from '@/features/orders.slice';
+import {
+  createOrder,
+  createOwner,
+  createPet,
+  deleteOrder,
+  getOrder,
+  getOrders,
+  updateOrder,
+} from '@/features/orders.slice';
 
 export const listenerMiddleware = createListenerMiddleware();
 export const startAppListening = listenerMiddleware.startListening;
@@ -105,6 +113,55 @@ startAppListening({
   actionCreator: getOrders.rejected,
   effect: async (action) => {
     notify('error', getErrorMessage(action, 'Ошибка получения заказов'));
+  },
+});
+
+startAppListening({
+  actionCreator: getOrder.rejected,
+  effect: async (action) => {
+    notify('error', getErrorMessage(action, 'Не удалось загрузить заказ для редактирования'));
+  },
+});
+
+startAppListening({
+  matcher: isAnyOf(createOwner.rejected, createPet.rejected),
+  effect: async (action) => {
+    notify('error', getErrorMessage(action, 'Не удалось создать данные заказа'));
+  },
+});
+
+startAppListening({
+  matcher: isAnyOf(createOrder.rejected, updateOrder.rejected),
+  effect: async (action) => {
+    notify('error', getErrorMessage(action, 'Не удалось сохранить изменения заказа'));
+  },
+});
+
+startAppListening({
+  actionCreator: deleteOrder.rejected,
+  effect: async (action) => {
+    notify('error', getErrorMessage(action, 'Не удалось удалить заказ'));
+  },
+});
+
+startAppListening({
+  actionCreator: createOrder.fulfilled,
+  effect: async () => {
+    notify('success', 'Заказ успешно создан');
+  },
+});
+
+startAppListening({
+  actionCreator: updateOrder.fulfilled,
+  effect: async () => {
+    notify('success', 'Заказ успешно изменён');
+  },
+});
+
+startAppListening({
+  actionCreator: deleteOrder.fulfilled,
+  effect: async () => {
+    notify('success', 'Заказ успешно удалён');
   },
 });
 

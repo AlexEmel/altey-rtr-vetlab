@@ -170,8 +170,8 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
       setCreatedOwner({ value: id, label: ownerLabel(created) });
       setSelectedOwnerId(id);
       setShowOwnerForm(false);
-    } catch (error) {
-      if (error) notify('error', 'Не удалось создать владельца');
+    } catch {
+      // Rejected order thunks are reported by the listener middleware.
     }
   };
 
@@ -192,8 +192,8 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
       const created = await dispatch(createPet(payload)).unwrap();
       setSelectedPetId(created._id);
       setShowPetForm(false);
-    } catch (error) {
-      if (error) notify('error', 'Не удалось создать питомца');
+    } catch {
+      // Rejected order thunks are reported by the listener middleware.
     }
   };
 
@@ -211,10 +211,9 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
       dispatch(setNewOrder(payload));
       if (order) await dispatch(updateOrder({ id: order._id, payload })).unwrap();
       else await dispatch(createOrder(payload)).unwrap();
-      notify('success', order ? 'Заказ успешно изменён' : 'Заказ успешно создан');
       handleClose();
-    } catch (error) {
-      if (error) notify('error', order ? 'Не удалось изменить заказ' : 'Не удалось создать заказ');
+    } catch {
+      // Rejected order thunks are reported by the listener middleware.
     }
   };
 

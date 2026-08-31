@@ -3,6 +3,6 @@
   cursor: pointer;
 
   &:hover > td {
-    background-color: #fafafa;
+    background-color: var(--color-bg-soft);
   }
 }
