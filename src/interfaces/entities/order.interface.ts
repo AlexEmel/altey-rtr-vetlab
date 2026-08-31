@@ -26,7 +26,7 @@ export interface IPet {
 }
 
 export interface IOwner {
-  _id?: string;
+  _id: string;
   lastName: string;
   firstName: string;
   middleName: string | null;
@@ -140,6 +140,8 @@ export interface IOrder {
   datetime: string;
   status: EOrderStatus;
   barcode: string;
+  clientId?: string;
+  doctorId?: string;
   pet: IPet;
   owner: IOwner;
   analysis: string[];

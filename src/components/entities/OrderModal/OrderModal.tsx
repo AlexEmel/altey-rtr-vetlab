@@ -92,7 +92,7 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
   const ownerOptions = useMemo(() => {
     const options = foundOwners.map((owner) => ({ value: owner._id, label: ownerLabel(owner) }));
     if (createdOwner && !options.some((option) => option.value === createdOwner.value)) options.push(createdOwner);
-    if (order?.owner._id && !options.some((option) => option.value === order.owner._id)) {
+    if (order?.owner?._id && !options.some((option) => option.value === order.owner._id)) {
       options.push({ value: order.owner._id, label: ownerLabel(order.owner) });
     }
     return options;
@@ -100,7 +100,7 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
 
   const petOptions = useMemo(() => {
     const options = foundPets.map((pet) => ({ value: pet._id, label: pet.nickname }));
-    if (order?.pet && !options.some((option) => option.value === order.pet._id)) {
+    if (order?.pet?._id && !options.some((option) => option.value === order.pet._id)) {
       options.push({ value: order.pet._id, label: order.pet.nickname });
     }
     return options;
@@ -118,12 +118,12 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
     if (!referrers.length) dispatch(getReferrers());
     if (!services.length) dispatch(getServices());
 
-    const clientId = clients.find((client) => client.name === order?.clientName)?._id;
-    const doctorId = doctors.find((doctor) => doctor.name === order?.doctor)?._id;
+    const clientId = order?.clientId ?? clients.find((client) => client.name === order?.clientName)?._id;
+    const doctorId = order?.doctorId ?? doctors.find((doctor) => doctor.name === order?.doctor)?._id;
     orderForm.setFieldsValue({ clientId, doctorId, referrerId: order?.referrerId });
-    setSelectedOwnerId(order?.owner._id);
-    setSelectedPetId(order?.pet._id);
-    setCheckedServiceIds(order?.services.map((service) => service._id) ?? []);
+    setSelectedOwnerId(order?.owner?._id);
+    setSelectedPetId(order?.pet?._id);
+    setCheckedServiceIds(order?.services?.map((service) => service._id) ?? []);
   }, [clients, dispatch, doctors, order, orderForm, open, referrers.length, services.length]);
 
   const handleClose = (): void => {

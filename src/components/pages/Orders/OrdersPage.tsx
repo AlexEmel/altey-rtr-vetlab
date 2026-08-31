@@ -1,7 +1,7 @@
 import { OrdersFilters } from '@/components/forms/OrdersFilters/OrdersFilters';
 import { OrdersTable } from '@/components/lists/OrdersTable/OrdersTable';
 import { OrderModal } from '@/components/entities/OrderModal/OrderModal';
-import { getOrder, getOrders } from '@/features/orders.slice';
+import { deleteOrder, getOrder, getOrders } from '@/features/orders.slice';
 import { notify } from '@/common/notifications';
 import { IOrder } from '@/interfaces/entities/order.interface';
 import { useAppDispatch } from '@/store/store';
@@ -35,6 +35,12 @@ export const OrdersPage = (): JSX.Element => {
               setIsModalOpen(true);
             })
             .catch(() => notify('error', 'Не удалось загрузить заказ для редактирования'));
+        }}
+        onDelete={(order) => {
+          void dispatch(deleteOrder(order._id))
+            .unwrap()
+            .then(() => notify('success', 'Заказ успешно удалён'))
+            .catch(() => notify('error', 'Не удалось удалить заказ'));
         }}
       />
       <OrderModal

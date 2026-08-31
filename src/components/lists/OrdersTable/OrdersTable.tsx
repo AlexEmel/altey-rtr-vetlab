@@ -6,8 +6,8 @@ import { setCurrentPage } from '@/features/orders.slice';
 import { EOrderStatus, IOrder, IOwner } from '@/interfaces/entities/order.interface';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { concatText, formatDatetime } from '@/utils/common.util';
-import { EditOutlined } from '@ant-design/icons';
-import { Button, Table, Tooltip } from 'antd';
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { Button, Popconfirm, Space, Table, Tooltip } from 'antd';
 import Column from 'antd/es/table/Column';
 import { useMemo } from 'react';
 import styles from './OrdersTable.module.scss';
@@ -20,9 +20,10 @@ const getStatusColor = (status: EOrderStatus): ETagColor =>
 
 interface IOrdersTableProps {
   onEdit: (order: IOrder) => void;
+  onDelete: (order: IOrder) => void;
 }
 
-export const OrdersTable = ({ onEdit }: IOrdersTableProps): JSX.Element => {
+export const OrdersTable = ({ onEdit, onDelete }: IOrdersTableProps): JSX.Element => {
   const { orders, currentPage, isLoading } = useAppSelector((store) => store.orders);
   const species = useAppSelector((store) => store.dictionaries.species);
   const breeds = useAppSelector((store) => store.dictionaries.breeds);
@@ -36,6 +37,9 @@ export const OrdersTable = ({ onEdit }: IOrdersTableProps): JSX.Element => {
       dataSource={orders}
       rowKey="_id"
       rowClassName={() => styles.row}
+      onRow={(order) => ({
+        onClick: () => onEdit(order),
+      })}
       loading={isLoading}
       pagination={{
         pageSize: 10,
@@ -47,15 +51,6 @@ export const OrdersTable = ({ onEdit }: IOrdersTableProps): JSX.Element => {
       size="middle"
     >
       <Column
-        key="actions"
-        width={54}
-        render={(order: IOrder) => (
-          <Tooltip title="Редактировать заказ">
-            <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(order)} />
-          </Tooltip>
-        )}
-      />
-      <Column
         title="Статус"
         key="status"
         width={120}
@@ -63,7 +58,7 @@ export const OrdersTable = ({ onEdit }: IOrdersTableProps): JSX.Element => {
           <AppTag text={ORDER_STATUS_LABELS[order.status]} color={getStatusColor(order.status)} />
         )}
       />
-      <Column title="Штрихкод" key="barcode" dataIndex="barcode" width={150} />
+      <Column title="Штрихкод" key="barcode" dataIndex="barcode" width={100} />
       <Column
         title="Дата заказа"
         key="datetime"
@@ -79,7 +74,7 @@ export const OrdersTable = ({ onEdit }: IOrdersTableProps): JSX.Element => {
       <Column
         title="Биологический вид"
         key="species"
-        width={190}
+        width={150}
         render={(order: IOrder) =>
           order.pet ? speciesMap.get(order.pet.speciesId) ?? 'Не указан' : 'Не указан'
         }
@@ -103,6 +98,30 @@ export const OrdersTable = ({ onEdit }: IOrdersTableProps): JSX.Element => {
       />
       <Column title="Врач" key="doctor" dataIndex="doctor" width={200} />
       <Column title="Контрагент" key="clientName" dataIndex="clientName" width={220} />
+      <Column
+        key="actions"
+        width={96}
+        fixed="right"
+        render={(order: IOrder) => (
+          <Space size={0} onClick={(event) => event.stopPropagation()}>
+            <Tooltip title="Редактировать заказ">
+              <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(order)} />
+            </Tooltip>
+            <Popconfirm
+              title="Удалить заказ?"
+              description="Это действие нельзя отменить."
+              okText="Удалить"
+              cancelText="Отмена"
+              okButtonProps={{ danger: true }}
+              onConfirm={() => onDelete(order)}
+            >
+              <Tooltip title="Удалить заказ">
+                <Button type="text" danger icon={<DeleteOutlined />} />
+              </Tooltip>
+            </Popconfirm>
+          </Space>
+        )}
+      />
     </Table>
   );
 };
