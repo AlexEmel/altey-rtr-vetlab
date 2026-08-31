@@ -15,7 +15,18 @@ export const SiderLink: FC<ISiderLinkProps> = ({ link }): JSX.Element => {
   const Icon = link.icon;
 
   return (
-    <NavLink to={link.path} className={styles.siderLink}>
+    <NavLink
+      to={link.path}
+      className={({ isActive }) =>
+        [
+          styles.siderLink,
+          isSidebarCollapsed ? styles.collapsed : '',
+          isActive ? styles.active : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+      }
+    >
       {isSidebarCollapsed ? (
         <Tooltip title={link.title} mouseEnterDelay={1}>
           <Icon className={styles.icon} />
