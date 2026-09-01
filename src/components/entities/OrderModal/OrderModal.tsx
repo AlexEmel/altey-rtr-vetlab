@@ -9,6 +9,8 @@ import {
   resetFoundPets,
   setNewOrder,
   updateOrder,
+  updateOwner,
+  updatePet,
 } from '@/features/orders.slice';
 import { getDoctors, getReferrers, getServices } from '@/features/dictionary.slice';
 import {
@@ -24,7 +26,7 @@ import { useAppDispatch, useAppSelector } from '@/store/store';
 import { maskRussianPhone, normalizeRussianPhone } from '@/utils/common.util';
 import palmIcon from '@/assets/icons/palm.png';
 import pawIcon from '@/assets/icons/paw.png';
-import { PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, DatePicker, Form, Input, Modal, Radio, Select, Space, Switch, Tree } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import dayjs, { Dayjs } from 'dayjs';
@@ -128,6 +130,8 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
   const [checkedServiceIds, setCheckedServiceIds] = useState<string[]>([]);
   const [showOwnerForm, setShowOwnerForm] = useState(false);
   const [showPetForm, setShowPetForm] = useState(false);
+  const [isEditingOwner, setIsEditingOwner] = useState(false);
+  const [isEditingPet, setIsEditingPet] = useState(false);
   const [createdOwner, setCreatedOwner] = useState<IOwnerRecord>();
   const [debouncedOwnerSearch] = useDebounce(ownerSearch.trim(), 400);
 
@@ -274,10 +278,57 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
     setCheckedServiceIds([]);
     setShowOwnerForm(false);
     setShowPetForm(false);
+    setIsEditingOwner(false);
+    setIsEditingPet(false);
     setCreatedOwner(undefined);
     dispatch(resetFoundOwners());
     dispatch(resetFoundPets());
     onClose();
+  };
+
+  const getSelectedOwner = (): IOwnerRecord | undefined => {
+    if (!selectedOwnerId) return undefined;
+    return (
+      foundOwners.find((owner) => owner._id === selectedOwnerId) ??
+      (createdOwner?._id === selectedOwnerId ? createdOwner : undefined) ??
+      (order?.owner._id === selectedOwnerId ? orderOwnerToRecord(order.owner) : undefined)
+    );
+  };
+
+  const getSelectedPet = (): IOrder['pet'] | undefined => {
+    if (!selectedPetId) return undefined;
+    return (
+      foundPets.find((pet) => pet._id === selectedPetId) ??
+      (order?.pet._id === selectedPetId ? order.pet : undefined)
+    );
+  };
+
+  const handleOwnerCreateOpen = (): void => {
+    if (showOwnerForm && !isEditingOwner) {
+      setShowOwnerForm(false);
+      return;
+    }
+
+    ownerForm.resetFields();
+    setIsEditingOwner(false);
+    setShowOwnerForm(true);
+  };
+
+  const handleOwnerEditOpen = (): void => {
+    const owner = getSelectedOwner();
+    if (!owner) return notify('warning', 'Выберите владельца для редактирования');
+
+    ownerForm.setFieldsValue({
+      lastName: owner.lastName,
+      firstName: owner.firstName,
+      middleName: owner.middleName,
+      phone: maskRussianPhone(owner.phone),
+      email: owner.email,
+      bornDate: owner.bornDate ? dayjs(owner.bornDate) : null,
+      snils: owner.snils,
+    });
+    setIsEditingOwner(true);
+    setShowOwnerForm(true);
   };
 
   const handleOwnerCreate = async (): Promise<void> => {
@@ -292,6 +343,14 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
         bornDate: values.bornDate?.toISOString() ?? '',
         snils: values.snils?.trim() ?? '',
       };
+      if (isEditingOwner && selectedOwnerId) {
+        const updated = await dispatch(updateOwner({ id: selectedOwnerId, payload })).unwrap();
+        setCreatedOwner(updated);
+        setShowOwnerForm(false);
+        setIsEditingOwner(false);
+        return;
+      }
+
       const created = await dispatch(createOwner(payload)).unwrap();
       const id = created._id ?? created.id;
       const createdRecord: IOwnerRecord = { ...created, _id: id };
@@ -304,6 +363,35 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
     } catch {
       // Rejected order thunks are reported by the listener middleware.
     }
+  };
+
+  const handlePetCreateOpen = (): void => {
+    if (showPetForm && !isEditingPet) {
+      setShowPetForm(false);
+      return;
+    }
+
+    petForm.resetFields();
+    petForm.setFieldsValue({ sex: ESex.MALE, isSterilized: false });
+    setIsEditingPet(false);
+    setShowPetForm(true);
+  };
+
+  const handlePetEditOpen = (): void => {
+    const pet = getSelectedPet();
+    if (!pet) return notify('warning', 'Выберите питомца для редактирования');
+
+    petForm.setFieldsValue({
+      nickname: pet.nickname,
+      speciesId: pet.speciesId,
+      breedId: pet.breedId ?? '',
+      sex: pet.sex,
+      bornDate: pet.bornDate ? dayjs(pet.bornDate) : null,
+      age: pet.age,
+      isSterilized: pet.isSterilized,
+    });
+    setIsEditingPet(true);
+    setShowPetForm(true);
   };
 
   const handlePetCreate = async (): Promise<void> => {
@@ -321,6 +409,13 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
         bornDate: values.bornDate?.toISOString() ?? '',
         age: values.age?.trim() ?? '',
       };
+      if (isEditingPet && selectedPetId) {
+        await dispatch(updatePet({ id: selectedPetId, payload })).unwrap();
+        setShowPetForm(false);
+        setIsEditingPet(false);
+        return;
+      }
+
       const created = await dispatch(createPet(payload)).unwrap();
       setSelectedPetId(created._id);
       setShowPetForm(false);
@@ -387,9 +482,14 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <h3><img src={palmIcon} alt="" aria-hidden="true" />Владелец</h3>
-            <Button icon={<PlusOutlined />} onClick={() => setShowOwnerForm((value) => !value)}>
-              Новый владелец
-            </Button>
+            <Space>
+              <Button icon={<PlusOutlined />} onClick={handleOwnerCreateOpen}>
+                Новый владелец
+              </Button>
+              <Button icon={<EditOutlined />} disabled={!selectedOwnerId} onClick={handleOwnerEditOpen}>
+                Редактировать
+              </Button>
+            </Space>
           </div>
           <Space.Compact className={styles.ownerSearchControls} block>
               <Radio.Group
@@ -414,6 +514,12 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
                   setSelectedOwnerId(value);
                   setSelectedPetId(undefined);
                   setPetSearch('');
+                  setShowOwnerForm(false);
+                  setShowPetForm(false);
+                  setIsEditingOwner(false);
+                  setIsEditingPet(false);
+                  ownerForm.resetFields();
+                  petForm.resetFields();
                 }}
                 onSearch={handleOwnerSearchInput}
                 searchValue={ownerSearch}
@@ -456,23 +562,33 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
                 <Input />
               </Form.Item>
               <Button type="primary" onClick={handleOwnerCreate}>
-                Создать владельца
+                {isEditingOwner ? 'Сохранить владельца' : 'Создать владельца'}
               </Button>
             </Form>
           )}
           <div className={styles.petSection}>
             <div className={styles.sectionHeader}>
               <h3><img src={pawIcon} alt="" aria-hidden="true" />Питомец</h3>
-              <Button icon={<PlusOutlined />} onClick={() => setShowPetForm((value) => !value)}>
-                Новый питомец
-              </Button>
+              <Space>
+                <Button icon={<PlusOutlined />} onClick={handlePetCreateOpen} disabled={!selectedOwnerId}>
+                  Новый питомец
+                </Button>
+                <Button icon={<EditOutlined />} disabled={!selectedPetId} onClick={handlePetEditOpen}>
+                  Редактировать
+                </Button>
+              </Space>
             </div>
             <Select
               className={styles.petSearchSelect}
               value={selectedPetId}
               options={petOptions}
               placeholder="Поиск питомца по кличке"
-              onChange={setSelectedPetId}
+              onChange={(value) => {
+                setSelectedPetId(value);
+                setShowPetForm(false);
+                setIsEditingPet(false);
+                petForm.resetFields();
+              }}
               onSearch={setPetSearch}
               searchValue={petSearch}
               showSearch
@@ -520,7 +636,7 @@ export const OrderModal = ({ open, order, onClose }: IOrderModalProps): JSX.Elem
                 <Switch />
               </Form.Item>
               <Button type="primary" onClick={handlePetCreate}>
-                Создать питомца
+                {isEditingPet ? 'Сохранить питомца' : 'Создать питомца'}
               </Button>
             </Form>
           )}
