@@ -21,10 +21,14 @@ export const LoginPage = (): JSX.Element => {
 
   return (
     <Flex vertical className={styles.container}>
-      <Title level={2}>УДАЛЕННЫЙ ПРОЦЕДУРНЫЙ КАБИНЕТ</Title>
-      <Flex gap={20}>{isTempPassword ? <SetPasswordForm /> : <LoginForm />}</Flex>
       <Flex className={styles.logo}>
         <AppLogo />
+      </Flex>
+      <Flex vertical className={styles.content}>
+        <Title level={2} className={styles.title}>
+          УДАЛЕННЫЙ ПРОЦЕДУРНЫЙ КАБИНЕТ
+        </Title>
+        <Flex className={styles.formContainer}>{isTempPassword ? <SetPasswordForm /> : <LoginForm />}</Flex>
       </Flex>
     </Flex>
   );
